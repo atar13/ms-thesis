@@ -1,0 +1,23 @@
+name: "Build LaTex Document"
+on:
+  push:
+    branches:
+      - main
+
+env:
+  OUTPUT_FILE: main.pdf
+  BUILD_CMD: "just build"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v27
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - run: nix flake check
+    - run: nix develop --command $BUILD_CMD
+  upload:
+    uses: softprops/action-gh-release@v2
+    with.files: $OUTPUT_FILE 
