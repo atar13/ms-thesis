@@ -5,7 +5,8 @@ on:
       - main
 
 env:
-  OUTPUT_FILE: main.pdf
+  BUILD_OUTPUT_FILE: main.pdf
+  FINAL_NAME: sharing-is-caring
   BUILD_CMD: "just build"
 
 jobs:
@@ -24,9 +25,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: false
+    - name: rename
+      run: mv $BUILD_OUTPUT_FILE "${FINAL_NAME}-${{ steps.bump.outputs.new_tag }}.pdf"
+
     - name: upload
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.bump.outputs.new_tag }}
         make_latest: true
-        files: ${{ env.OUTPUT_FILE }}
+        files: "${FINAL_NAME}-${{ steps.bump.outputs.new_tag }}.pdf"
