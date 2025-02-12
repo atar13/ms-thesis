@@ -11,13 +11,22 @@
 
 % \addbibresource{references.bib}
 
-\title{Sharing is Caring}
+\title{Sharing is Caring: Shared Libraries for an Embedded Operating System}
 \author{Anthony Tarbinian}
 \date{June 2025}
 
 \begin{document}
 
 \maketitle
+
+\section*{Abstract}
+
+Today, shared libraries are ubiquitous in modern operating systems. %
+When multiple processes share the same code, memory can be saved by removing any duplicate copies of the libraries they have in common. %
+This technique becomes increasingly relevant in the context of multi-tenant embedded systems. %
+These devices are already resource constrained, however, this problem is exacerbated with the presence of multiple ”apps” running on the same system. %
+This presents an opportunity to free the system to do even more with its precious resources or to push the same workloads to cheaper devices. %
+This work examines the design and implementation of adding shared libraries to a multi-tenant embedded operating system with a focus on system security and efficiency. %
 
 \section*{Introduction}
 
@@ -35,9 +44,19 @@
 
 \section*{Background}
 
+\section*{Related Works}
+
+\begin{itemize}
+    \item TODO: see what kind of support other embedded OSes have for shared libraries have. how are they implemented? any drawbacks?
+\end{itemize}
+
 \section*{Overview}
 
 \section*{Design}
+
+\begin{itemize}
+    \item security? prevent one app from messing with shared library memory which would affect another app (use MPU to make shared memory sections r/x only, no writes?)
+\end{itemize}
 
 \section*{Evaluation}
 
