@@ -28,5 +28,6 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
+        tag_name: ${{ steps.bump.outputs.new_tag }}
         make_latest: true
         files: $OUTPUT_FILE 
