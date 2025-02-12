@@ -3,7 +3,7 @@
 with pkgs;
 
 mkShell {
-  name = "resume";
+  name = "ms-thesis";
   buildInputs = with pkgs; [
     just
     texliveFull
