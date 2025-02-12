@@ -6,7 +6,7 @@ mkShell {
   name = "ms-thesis";
   buildInputs = with pkgs; [
     just
-    texliveFull
+    texliveSmall
     sioyek
     rubber
   ];
