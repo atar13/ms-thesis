@@ -20,4 +20,5 @@ jobs:
     - run: nix develop --command $BUILD_CMD
     - name: upload
       uses: softprops/action-gh-release@v2
-      with.files: $OUTPUT_FILE 
+      with:
+        files: $OUTPUT_FILE 
