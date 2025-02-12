@@ -29,4 +29,4 @@ jobs:
       with:
         tag_name: ${{ steps.bump.outputs.new_tag }}
         make_latest: true
-        files: $OUTPUT_FILE 
+        files: ${{ env.OUTPUT_FILE }}
