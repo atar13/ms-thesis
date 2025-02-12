@@ -33,4 +33,4 @@ jobs:
       with:
         tag_name: ${{ steps.bump.outputs.new_tag }}
         make_latest: true
-        files: "${FINAL_NAME}-${{ steps.bump.outputs.new_tag }}.pdf"
+        files: "${{ env.FINAL_NAME }}-${{ steps.bump.outputs.new_tag }}.pdf"
