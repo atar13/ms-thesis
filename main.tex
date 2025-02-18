@@ -40,9 +40,26 @@ This work examines the design and implementation of adding shared libraries to a
             \item Limited memory on embedded systems. (Reference Hudson paper)
             \item Wireless app flashing and loading
         \end{itemize}
+    \item Why do existing solutions fall short?
+        \begin{itemize}
+            \item Could talk about other embedded OSes
+            \item A lot of other embedded OSes aren't multi-tenant, so our situation might be a little different 
+            \item Maybe worth saving for related works section
+        \end{itemize}
+    \item How do you fix the problem
+        \begin{itemize}
+            \item Make it!
+        \end{itemize}
 \end{itemize}
 
 \section*{Background}
+
+\begin{itemize}
+    \item What are shared libraries?
+    \item How do they work on other OSes
+    \item Embedded OSes
+    \item Multi-tenant embedded OSes?
+\end{itemize}
 
 \section*{Related Works}
 
@@ -59,9 +76,73 @@ This work examines the design and implementation of adding shared libraries to a
 \end{itemize}
 
 \section*{Evaluation}
-
+\begin{itemize}
+    \item Does it work?
+    \item Does it really work?
+        \begin{itemize}
+            \item How well? under varying paramters?
+            \begin{itemize}
+                \item tons of apps?
+                \item tons of libraries?
+            \end{itemize}
+            \item How does it compare?
+        \end{itemize}
+    \item Graphs
+        \begin{itemize}
+            \item Overhead of function call to shared library
+                \begin{itemize}
+                    \item Bar graph showing function call with shared library vs statically linked
+                    \item Comparison graph to Linux?
+                \end{itemize}
+            \item Process loading overhead? 
+                \begin{itemize}
+                    \item Bar graph showing any additional overhead for the kernel to have to look through header and map shared library. 
+                    \item Comparison graph to Linux process loading?
+                \end{itemize}
+            \item RAM/Flash savings without having to statically compile shared libraries
+            \item Any additoinal RAM overhead?
+        \end{itemize}
+\end{itemize}
 \section*{Discussion}
 
 \section*{Conclusion}
+
+\section*{Notes}
+\begin{itemize}
+    \item poking
+        \begin{itemize}
+            \item trying to find where the kernel decides to put app (need to leave some space for shared libs)
+            \item seems like process\_standard::create() is responsible
+            \item seems like linker script defines the bounds for all application memory
+        \end{itemize}
+
+    \item MVP
+    \begin{itemize}
+        \item tockloader (build stage):  
+        \begin{itemize}
+            \item have two libraries share libc (newlib)
+            \item have a hardcoded value in header to point to newlib
+            \item literally a string or something
+            \item this is ok? it'll be a finite number of libraries supported for Libtock-c later on
+        \end{itemize}
+    \item kernel (runtime):
+    \begin{itemize}
+            \item read headers
+            \item if you see a shared lib, allocate a fixed block of RAM within the application region
+    \end{itemize}
+    \end{itemize}
+
+
+    \item qs
+        \begin{itemize}
+            \item  what is brk and are apps not allocated any memory to start?
+            \item  seems like processes define how much memory they need in TBF?
+            \item  how to share region between all apps (or just apps who are using lib)
+            \item  look at ipc.rs
+            \item  How does IPC allocate shared mem? Is it kernel memory or in application region
+            \item  Should I change linker script to leave some space for the shared libraries?
+        \end{itemize}
+\end{itemize}
+
 
 \end{document}
