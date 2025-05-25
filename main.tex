@@ -1,171 +1,1205 @@
-\documentclass{article}
-% \usepackage{graphicx} % Required for inserting images
-% % \usepackage[
-% % backend=biber,
-% % style=apa,
-% % ]{biblatex}
-% % \usepackage[T1]{fontenc}
-% \usepackage{mathptmx}
-% \usepackage[legalpaper, portrait, margin=1in]{geometry}
-% \renewcommand{\baselinestretch}{2} 
+\documentclass[12pt]{ucsddissertation}
+% mathptmx is a Times Roman look-alike (don't use the times package)
+% It isn't clear if Times is required. The OGS manual lists several
+% "standard fonts" but never says they need to be used.
+\usepackage{mathptmx}
+\usepackage[NoDate]{currvita}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+\usepackage{microtype}
+\usepackage[breaklinks=true,pdfborder={0 0 0}]{hyperref}
+\usepackage{graphicx}
+\AtBeginDocument{%
+	\settowidth\cvlabelwidth{\cvlabelfont 0000--0000}%
+}
+\usepackage{svg}
+\usepackage[compatibility=false]{caption}
+\usepackage{minted}
+\usepackage{subcaption}
 
-% \addbibresource{references.bib}
 
+% OGS recommends increasing the margins slightly.
+\increasemargins{.1in}
+
+% These are just for testing/examples, delete them
+\usepackage{trace}
+%\usepackage{showframe} % This package was just to see page margins
+\usepackage[english]{babel}
+\usepackage{blindtext}
+\overfullrule5pt
+% ---
+
+% Required information
 \title{Sharing is Caring: Shared Libraries for an Embedded Operating System}
-\author{Anthony Tarbinian}
-\date{June 2025}
+\author{Anthony Haig Tarbinian}
+\degree{Computer Science}{Master of Science}
+% Each member of the committee should be listed as Professor Foo Bar.
+% If Professor is not the correct title for one, then titles should be
+% omitted entirely.
+\chair{Professor Pat Pannuto}
+% Your committee members (other than the chairs) must be in alphabetical order
+\committee{Professor Deian Stefan}
+\committee{Professor Geoffrey Voelker}
+\committee{}
+\degreeyear{2025}
 
+% Start the document
 \begin{document}
-
+% Begin with frontmatter and so forth
+\frontmatter
 \maketitle
-
-\section*{Abstract}
-
-Today, shared libraries are ubiquitous in modern operating systems. %
-When multiple processes share the same code, memory can be saved by removing any duplicate copies of the libraries they have in common. %
-This technique becomes increasingly relevant in the context of multi-tenant embedded systems. %
-These devices are already resource constrained, however, this problem is exacerbated with the presence of multiple ”apps” running on the same system. %
-This presents an opportunity to free the system to do even more with its precious resources or to push the same workloads to cheaper devices. %
-This work examines the design and implementation of adding shared libraries to a multi-tenant embedded operating system with a focus on system security and efficiency. %
-
-\section*{Introduction}
-
-\begin{itemize}
-    \item What is the problem?
-        \begin{itemize}
-            \item Wasted space
-        \end{itemize}
-    \item Why is this an important problem?
-        \begin{itemize}
-            \item Limited memory on embedded systems. (Reference Hudson paper)
-            \item Wireless app flashing and loading
-        \end{itemize}
-    \item Why do existing solutions fall short?
-        \begin{itemize}
-            \item Could talk about other embedded OSes
-            \item A lot of other embedded OSes aren't multi-tenant, so our situation might be a little different 
-            \item Maybe worth saving for related works section
-        \end{itemize}
-    \item How do you fix the problem
-        \begin{itemize}
-            \item Make it!
-        \end{itemize}
-\end{itemize}
-
-\section*{Background}
-
-\begin{itemize}
-    \item What are shared libraries?
-    \item What is static linking? \\
-        When libraries are statically linked, the linker copies them into the program's executable file at link-time. This happens before the program ever gets run.
-    \item How do they work on other OSes? \\
-        Virtually all modern operating systems have support for sharing libraries between processes. We will examine how libraries are typically loaded on a Linux system.
-
-        First, when a program is started, such as via the \texttt{exec} system call, the dynamic linker is the first thing that gets run. On Linux, the dynamic linker inspects the binary to determine which libraries need to be loaded \cite{ld.so}. For recent versions of Linux, this usually means parsing the ELF binary format. ELF is a standardized format for executable and library files. It contains something called the "Dynamic Section" which contains references to shared libraries that need to be dynamically linked \cite{ELF pg 78}. The dynamic linker looks though these references, parses their path, and maps them into your process's address space. One the library is loaded, the dynamic linker goes ahead and populates the Global Offset Tables (GOT) and Procedure Linkage Table (PLT). TODO explain
-
-
-        \textbf{TODO: show graph of Linux library linking} \\
-        \textbf{TODO: diagram of ELF Headers}
-    \item Embedded OSes?
-        What are embedded OSes? \\
-        What are some of the popular ones out there and what sets them apart? \\
-    \item Multi-tenant embedded OSes?
-    \item Tock
-    \item Tockloader
-    \item TBF \\
-        \textbf{TODO: diagram of TBF Headers}
-\end{itemize}
-
-\section*{Related Works}
-
-\begin{itemize}
-    \item TODO: see what kind of support other embedded OSes have for shared libraries have. how are they implemented? any drawbacks?
-\end{itemize}
-
-\section*{Overview}
-
-\section*{Design}
-
-\begin{itemize}
-    \item security? prevent one app from messing with shared library memory which would affect another app (use MPU to make shared memory sections r/x only, no writes?)
-\end{itemize}
-
-\section*{Evaluation}
-\begin{itemize}
-    \item Does it work?
-    \item Does it really work?
-        \begin{itemize}
-            \item How well? under varying paramters?
-            \begin{itemize}
-                \item tons of apps?
-                \item tons of libraries?
-            \end{itemize}
-            \item How does it compare?
-        \end{itemize}
-    \item Graphs
-        \begin{itemize}
-            \item Overhead of function call to shared library
-                \begin{itemize}
-                    \item Bar graph showing function call with shared library vs statically linked
-                    \item Comparison graph to Linux?
-                \end{itemize}
-            \item Process loading overhead? 
-                \begin{itemize}
-                    \item Bar graph showing any additional overhead for the kernel to have to look through header and populate GOT/PLT in memory.
-                    \item Comparison graph to Linux process loading?
-                \end{itemize}
-            \item Tockloader flashing overhead? 
-            \item RAM/Flash savings without having to statically compile shared libraries
-            \item Any additoinal RAM overhead?
-        \end{itemize}
-\end{itemize}
-\section*{Discussion}
-
-\section*{Conclusion}
-
-% \section*{Notes}
-% \begin{itemize}
-%     \item poking
-%         \begin{itemize}
-%             \item trying to find where the kernel decides to put app (need to leave some space for shared libs)
-%             \item seems like process\_standard::create() is responsible
-%             \item seems like linker script defines the bounds for all application memory
-%         \end{itemize}
+\makecopyright
+\makesignature
+% Optional
+% \begin{dedication}
+% \setsinglespacing
+% \raggedright % It would be better to use \RaggedRight from ragged2e
+% \parindent0pt\parskip\baselineskip
+% In recognition of reading this manual before beginning to format the
+% doctoral dissertation or master's thesis; for following the
+% instructions written herein; for consulting with OGS Academic Affairs
+% Advisers; and for not relying on other completed manuscripts, this
+% manual is dedicated to all graduate students about to complete the
+% doctoral dissertation or master's thesis.
 %
-%     \item MVP
-%     \begin{itemize}
-%         \item tockloader (build stage):  
-%         \begin{itemize}
-%             \item have two libraries share libc (newlib)
-%             \item have a hardcoded value in header to point to newlib
-%             \item literally a string or something
-%             \item this is ok? it'll be a finite number of libraries supported for Libtock-c later on
-%         \end{itemize}
-%     \item kernel (runtime):
-%     \begin{itemize}
-%             \item read headers
-%             \item if you see a shared lib, allocate a fixed block of RAM within the application region
-%     \end{itemize}
-%     \end{itemize}
+% In recognition that this is my one chance to use whichever
+% justification, spacing, writing style, text size, and/or textfont that
+% I want to while still keeping my headings and margins consistent.
+% \end{dedication}
+% Optional
+% \begin{epigraph}
+% \vskip0pt plus.5fil
+% \setsinglespacing
+% {\flushright
+% True ease in writing comes from art, not chance,\\
+% As those move easiest who have learn'd to dance.\\
+% 'T is not enough to no harshness gives offence,---\\
+% The sound must seem an echo to the sense.
 %
+% \vskip\baselineskip
+% \textit{Alexander Pope}\par}
+% \vfil
+% \begin{center}
+% You write with ease to show your breeding,\\
+% But easy writing's curst hard reading.
 %
-%     \item qs
-%         \begin{itemize}
-%             \item  what is brk and are apps not allocated any memory to start?
-%             \item  seems like processes define how much memory they need in TBF?
-%             \item  how to share region between all apps (or just apps who are using lib)
-%             \item  look at ipc.rs
-%             \item  How does IPC allocate shared mem? Is it kernel memory or in application region
-%             \item  Should I change linker script to leave some space for the shared libraries?
-%         \end{itemize}
-% \end{itemize}
+% \vskip\baselineskip
+% \textit{Richard Brinsley Sheridan}
+% \end{center}
+% \vfil
+% \noindent Writing, at its best, is a lonely life. Organizations for
+% writers palliate the writer's loneliness, but I doubt if they improve
+% his writing. He grows in public stature as he sheds his loneliness and
+% often his work deteriorates. For he does his work alone and if he is a
+% good enough writer he must face eternity, or the lack of it, each day.
+%
+% \vskip\baselineskip
+% \hskip0pt plus1fil\textit{Ernest Hemingway}\hskip0pt plus4fil\null
+%
+% \vfil
+% \end{epigraph}
+
+% Next comes the table of contents, list of figures, list of tables,
+% etc. If you have code listings, you can use \listoflistings (or
+% \lstlistoflistings) to have it be produced here as well. Same with
+% \listofalgorithms.
+\tableofcontents
+\listoffigures
+\listoftables
+
+% % Preface
+% \begin{preface}
+% Almost nothing is said in the manual about the preface. There is no
+% indication about how it is to be typeset. Given that, one is forced to
+% simply typeset it and hope it is accepted. It is, however, optional
+% and may be omitted.
+% \end{preface}
+
+% Your fancy acks here. Keep in mind you need to ack each paper you
+% use. See the examples here. In addition, each chapter ack needs to
+% be repeated at the end of the relevant chapter.
+\begin{acknowledgements}
+\noindent
+I would like to thank Pat Pannuto for being my advisor. I'm extremely grateful for his mentorship along the way. Whenever I thought I had hit a wall he would guide me back on the right path. Without him, the project wouldn't have happened and I wouldn't have gotten the chance to build something so cool.
+
+\noindent
+I would like to thank Geoffrey Voelker for their constant support throughout the development of this thesis. 
+
+\noindent
+I would like to thank Deian Stefan and Geoffrey Voelker for their willingness to serve on my committee.
+
+\noindent
+I would like to thank Tyler Potyondy for their guidance and kindness in working with the Tock project.  
+
+\noindent
+I would like to thank my previous teachers and professors for making me who I am and helping to get me to this point.
+
+\noindent
+I would like to thank my friends for their support and accomodation during this project.
+
+\noindent
+I would like to thank my parents and family for their unwaivering support in all that I pursue.
+\end{acknowledgements}
+
+% % Stupid vita goes next
+% \begin{vita}
+% \noindent
+% \begin{cv}{}
+% \begin{cvlist}{}
+% \item[1996] Bachelor of Arts, University of California, Berkeley
+% \item[1996--2000] U.S. Marines
+% \item[2000--2002] Teaching Assistant, Department of Mechanical
+% Engineering\\University of California, San Diego
+% \item[2002--2006] Research Assistant, University of California, San
+% Diego
+% \item[2010] Doctor of Philosophy, University of California, San Diego
+% \end{cvlist}
+% \end{cv}
+%
+% % This puts in the PUBLICATIONS header. Note that it appears inside
+% % the vita environment. It is optional.
+% \publications
+% \noindent``Distributions of Control Points in a System for Analysis of Stress
+% Distribution'' IRE Transactions of the I.R.E\@. Professional Group on
+% Automatic Control, vol. AC-7, pp 272--289, September 2005
+%
+% % This puts in the FIELDS OF STUDY. Also inside vita and also
+% % optional.
+% \fieldsofstudy
+% \noindent Major Field: Engineering (Specialization or Focused Studies)
+% \vskip\baselineskip
+% Studies in Applied Mathematics\par
+% Professors Alpha Beta and Gamma Delta
+% \vskip\baselineskip
+% Studies in Mechanices\par
+% Professors Epsilon Zeta and Eta Theta
+% \vskip\baselineskip
+% Studies in Electromagnetism\par
+% Professors Iota Kappa and Lambda Mu
+% \end{vita}
+
+% Put your maximum 350 word abstract here.
+\begin{dissertationabstract}
+Today, shared libraries are ubiquitous in computing systems. When multiple processes share the same code, resources can be saved by removing any duplicate copies of the libraries they have in common. This technique becomes increasingly relevant in the context of multi-tenant embedded systems. These devices are already resource constrained, however, this problem is exacerbated with the presence of multiple ”apps” running on the same system. This presents an opportunity to free the system to do even more with its precious resources or to push the same workloads to more cost-efficient devices. This work implements the infrastructure needed to support shared libraries for a multi-tenant embedded operating system, Tock.
+\end{dissertationabstract}
+
+% This is where the main body of your dissertation goes!
+\mainmatter
+
+% Optional Introduction
+\begin{dissertationintroduction}
+Virtually all software relies on libraries to reuse existing code. It's vital for developers to build on top established software to create larger and more complicated systems. Due to the widespread nature of libraries, it's possible that a system could have hundreds or thousands of processes all using the same libraries. For this reason, many operating systems allow processes to share library code. Resources can be saved by only requiring a single copy of a library's code to exist for all processes. Additionally, if multiple processes are reading from library's data sections, those can also be shared thanks to copy-on-write pages \cite{cow}.
+
+In recent years, microcontroller-class embedded devices are becoming increasingly multi-tenant and networked. As such, embedded operating systems have grown to fit this need. As with traditional operating systems, embedded operating systems have multiple processes which all use library code. As such, embedded systems would benefit from sharing commonly used library code. Typically embedded systems store and execute program code directly on flash memory. Keeping flash storage usage low is always a concern on embedded systems. Developers spend plenty of time trying to minimize binary size via compiler flags or source code optimizations \cite{llvm, hudson}. With shared libraries, flash storage can be used more efficiently and allow more functionality can be squeezed out of the cheapest and most resource constrained devices.
+
+    If libraries are decoupled from applications, the cost of updating either application or library is reduced. Usually, both the application and library must be updated together as a part of a new firmware image. With shared libraries, a single library can be updated independently of the applications. This way all applications can enjoy updated libraries without needing to be reinstalled. Faster over-the-air updates are crucial for large scale sensor deployments connected via long range, low-bandwidth wireless networking technologies (i.e. LoRa) \cite{lora1, lora2}. Every bit of bandwidth is precious and breaking up libraries from applications could make a substantial difference in updating an entire network of deployed devices. Figure \ref{fig:lora} shows a potential smart city with over-the-air security updates being sent to several smart lampposts. If only the library needs to be updated, shared libraries can allow for libraries to be separated from the application executable and reduce the amount of data needed to be sent wirelessly. 
+
+\begin{figure}
+\centering
+\includesvg[scale=0.6]{./assets/ota_lora.svg}
+\caption{Faster LoRa Updates with Shared Libraries}
+\label{fig:lora}
+\end{figure}
+
+This work designs and implements a system to support shared libraries for the embedded operating system Tock. It examines how dynamic loading can be adapted to fit on embedded platforms. As a part of this thesis, I have updated the Tock operating system and the accompanying infrastructure to support shared libraries.
+
+% \verb!\mainmatter! macro because it should start on page~1.
+\end{dissertationintroduction}
+
+\chapter{Background}
+
+\section{Libraries}
+\subsection{Static Linking}
+Static linking folds all library dependencies into the main executable \cite{systems}. The code of the library is copied into the final binary. Via this method, the linker can resolve all references to library functions at link/build time. No additional work needs to be done at runtime to have the application execute. It already comes packaged with any needed library code in the same executable file. Figure \ref{fig:static} showcases two statically linked applications. Both applications are statically linked with the same library, resulting in a duplicated copy of the library code.
+
+\begin{figure}[h!]
+\centering
+\includesvg[width=0.6\textwidth]{./assets/staticlib.svg}
+\caption[Static Libraries]{Two applications statically linked with the same duplicated library code}
+\label{fig:static}
+\end{figure}
+
+\subsection{Shared Libraries}
+Shared libraries decouples libraries from the main application binary. The library's code exists independently, outside of the main binary. As a result, multiple applications can refer to the same library code as depicted in Figure \ref{fig:shared}. To support shared libraries, additional support is needed at runtime to resolve references to shared library symbols. Unlike static linking, all references to the library cannot be resolved at link/build time. Instead, dynamic linker is responsible for locating shared libraries and patching up references to shared libraries at runtime \cite{lwm-dynamic}. 
+
+\begin{figure}
+\centering
+Two applications sharing a single copy of the library code \\
+\includesvg[width=0.6\textwidth]{./assets/shlib.svg}
+\caption{Multiple Processes Sharing a Single Library}
+\label{fig:shared}
+\end{figure}
 
 
-\section*{Bib}
+\section{Dynamic Linking}
+To understand what might be needed for shared libraries to work on embedded operating systems, it would be useful to examine the behavior other platforms exhibit when dealing with shared libraries. Take the GNU/Linux operating system for example \cite{gnu-linux}. Examining the chain of events needed to load dynamically linked executables on Linux shows the type of behavior needed at runtime to support shared libraries. 
 
-    \begin{enumerate}
-        \item ld.so: https://www.man7.org/linux/man-pages/man8/ld.so.8.html
-        \item ELF: https://refspecs.linuxfoundation.org/elf/elf.pdf
-    \end{enumerate}
+\begin{figure}
+\centering
+\includesvg[width=0.8\textwidth]{./assets/linux_loading2(1).svg}
+    \caption[Loading a Dynamically Linked Executable on Linux]{High level overview of loading a dynamically linked executable on Linux}
+\label{fig:elf}
+\end{figure}
+
+\subsubsection{\texttt{execve} System Call}
+For an executable to be loaded on Linux, the loading process is usually kicked off by another process trying to execute a program. One common way is via the \texttt{execve} system call \cite{execve}. One of the first things that \texttt{execve} does is parse the executable to find out what type of binary it is and subsequently how to interpret it \cite{lwm-binfmt}. Linux supports a variety of binary formats such as interpreted scripts and the original Unix \texttt{a.out} binary format \cite{aout}.
+
+\subsubsection{ELF}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{./assets/Elf-layout--en.svg.png}
+    \caption[ELF Binary Layout]{Simplified layout of a typical ELF binary -- \textbf{Figure from} \cite{elf-wiki}}
+\label{fig:elf}
+\end{figure}
+
+This overview will focus on the Executable and Link Format (ELF) binary format and how Linux loads ELF executables \cite{elf-pdf}. ELF is the successor to the aforementioned \texttt{a.out} binary format and is the binary format mainly used on modern Linux systems \cite{lwm-elf}. Figure \ref{fig:elf} showcases the content and layout of a typical ELF binary. For the purposes \texttt{execve}, the most important part of the ELF file is the \textbf{Program Header Table} \cite{program-header-table}. The Program Header Table outlines information needed by the system to prepare the program for execution. For dynamically linked programs, an important type of program header entry is \texttt{PT\_INTERP} which identifies a \textbf{dynamic linker} to prepare the program for execution \cite{lwm-elf, program-header-table}. The dynamic linker is responsible for binding any unresolved symbols and performing any needed relocations. \texttt{ld-linux.so} is the dynamic linker used for ELF binaries with \texttt{ld.so} being used for the \texttt{a.out} format \cite{ld-so}. 
+
+
+To find any shared library dependencies, the dynamic linker will look in the ``dynamic" section of the binary. Specifically, dynamic entries of type \texttt{DT\_NEEDED} will indicate the names of any shared libraries required by the program being loaded \cite{elf-pdf, lwm-dynamic}. Figure \ref{fig:dt_needed} shows shared library dependecies of a Linux binary by using the \texttt{readelf} program to print out the \texttt{DT\_NEEDED} entries of the binary's dynamic section. The dynamic linker looks though these references, finds the shared library code on the filesystem. It will look through directories such as \texttt{/lib/} or \texttt{/usr/lib/} as well as additional directories using the \texttt{LD\_LIBRARY\_PATH} environment variable \cite{ld-so}. Users can also override functions by using the \texttt{LD\_PRELOAD} environment variable to point to shared objects that implement the same functions. Now that the dynamic linker has found the shared libraries on the filesystem it can map them into the memory of the new process. However, this begs the question, where in the process's address space does the library get mapped? 
+
+\begin{figure}
+\begin{verbatim}
+Dynamic section at offset 0x39c8c0 contains 31 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ ...
+\end{verbatim}
+    \caption[DT\_NEEDED Entries of ELF Dynamic Section]{Output of \texttt{readelf --dynamic <binary>} which indicates shared library dependencies via DT\_NEEDED entries of the ELF dynamic section.}
+\label{fig:dt_needed}
+\end{figure}
+
+% \subsection{Load-Time Relocations}
+%
+% The placement of shared libraries into a process's virtual address space depends on the number of libraries being used by the process as well as the order in which those libraries were loaded. Either of these can change where a library ends up being mapped in the address space. This uncertainty of library placement requires the dynamic linker to perform relocations on shared libraries before. 
+%
+% Many parts of the code don't need any relocation. Accesses to local variables and function arguments will still work since both are relative to the stack pointer register. However, the dynamic linker needs to perform relocations for global data accesses and function calls.
+
+
+\section{Position Independent Code (PIC)} \label{bg-pic}
+
+The placement of shared libraries into a process's virtual address space depends on the number of libraries being used by the process as well as the order in which those libraries were loaded. Either of these can change where a library ends up being mapped in the address space. 
+
+ 
+To deal with this uncertainty, one solution is to make the shared library code be \textbf{position independent}. In other words, it should function no matter where in memory it is loaded. Many parts of the code are already position independent. Accesses to local variables and function arguments will still work since both are relative to the stack pointer register (\texttt{sp}). Everywhere else, references to absolute addresses need to be removed. Local jumps and branches can be modified to be relative to the program counter register (\texttt{pc}). However, some extra infrastructure is needed to support global data accesses and function calls
+
+% \begin{figure}
+%     \caption{Number of relocations with Load-Time Relocation vs PIC}
+% \end{figure}
+
+\subsection{Global Offset Table (GOT)} \label{bg-got}
+Accessing global data (i.e. global variables) in a position independent manner becomes more complicated. The location of where the data section will be loaded into memory can't be known at compile time. As such, the dynamic linker must resolve global data references when the library is loaded. The dynamic linker could go ahead and individually resolve every global data reference in the code \cite{eli-load}. However, this is costly at load time. One solution to reduce the number of relocations is via a level of indirection. A \textbf{Global Offset Table} (GOT) achieves this level of indirection for global data accesses. The GOT will act as a lookup table which will store the actual location of global data members. See Figure \ref{fig:gotlayout} for an overview of how the GOT entries are laid out. The compiler will replace each global variable reference to a lookup in the GOT. After relocation, the GOT will contain the actual address to the global variable. 
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6]{./assets/code_data_got_1.png}
+    \caption[GOT and Data Section Layout]{GOT and Data Section Layout -- \textbf{Figure from} \cite{eli-pic}}
+    \label{fig:gotlayout}
+\end{figure}
+
+On platforms such as x86 Linux, the compiler takes advantage of the fact that text sections are relative to data sections \cite{eli-pic}. As such, the compiler can generate code that performs PC-relative (program counter relative) accesses to the GOT. The program counter points to the next instruction to be executed, which lies in the text section. Since data is relative to text, the compiler can make accesses to the GOT relative to the current PC. Figure \ref{fig:gotpc} showcases the difference in code generated by the compiler to access a global variable with and without the GOT.
+
+\begin{figure}
+\begin{minted}{c}
+int var;
+ 
+void foo(void) {
+  var = 1;
+}
+\end{minted}
+\centering
+ \begin{minipage}{0.45\textwidth}
+    \begin{minted}{nasm}
+foo:
+; load address to var
+ldr r3, [pc, #4] 
+movs    r2, #1
+; write 1 to var
+str r2, [r3, #0] 
+bx  lr
+    \end{minted}
+ \end{minipage}
+ \begin{minipage}{0.45\textwidth}
+\begin{minted}{nasm}
+foo:
+; load PC-relative offset to GOT
+ldr r3, [pc, #12]
+; calculate actual GOT address 
+add r3, pc
+; load var's offset inside GOT
+ldr r2, [pc, #12]
+; load location of var from GOT
+ldr r3, [r3, r2]
+; write 1 to var
+movs    r2, #1
+str r2, [r3, #0]
+bx  lr
+\end{minted}
+ \end{minipage}
+    \caption[Global Variable Access with GOT]{Global Variable Access Without and With GOT. The top shows sample C code. The bottom left and right are the ARM assembly of two variations of the compiled C code. The left side indicates access to a global variable without using the GOT. The address to the variable \textit{var} is stored in the text section and is relocated at runtime. On the right side, the access to the same variable is done via the GOT. First the PC-relative offset to the GOT is loaded and used to calculate the actual address of the GOT (using the current pc). Then the offset to \textit{var}'s entry within the GOT is loaded. Using the address of the GOT and the offset of \textit{var} within the table, the code can access the address where \textit{var} exists in the data section. Once this address is found, it can access the variable itself. This example was slightly modified and lifted from \cite{mcu}.}
+    \label{fig:gotpc}
+\end{figure}
+
+
+\subsection{Procedure Linkage Table (PLT)} \label{bg-plt}
+Function calls to shared library also need to be resolved at runtime. This is commonly achieved via a jump table or sometimes called \textbf{Procedure Linkage Table} (PLT) which resides in the executable text section of a program. Instead of calling the function directly, the application jumps into an entry of the PLT. The PLT contains executable code which takes care of jumping to the actual function \cite{eli-pic}. The PLT will refer to a second GOT which exclusively contains addresses for functions referred to by PLT entries (frequently called the \texttt{.plt.got} section) \cite{lwm-dynamic}.
+
+One optimization made possible thanks to the PLT is lazy binding. With lazy binding, relocations for functions doesn't have to be done at program load time. Instead, they can occur the first time a function is called. This optimization can save plenty of time since functions which never get called will never need relocation. On the first call, the PLT will invoke a resolver routine (usually a part of the dynamic linker) which will find the location of the target function symbol \cite{eli-pic}. Once the location of the function is found, the address is cached in the GOT. Then, on subsequent calls to the function, the PLT will simply use the cached value in the GOT to jump directly to the function in question. Figure \ref{fig:plt-control} walks through the control flow of calling a function with lazy binding the first time compared to subsequent calls.
+
+\begin{figure}
+\centering
+    \includegraphics[width=0.9\textwidth]{./assets/plt-function.png}
+    \caption[PLT Control Flow]{PLT Control Flow With Lazy Binding -- \textbf{Figure from} \cite{lwm-dynamic}}
+\label{fig:plt-control}
+\end{figure}
+
+
+\section{Embedded Systems}
+\subsection{Embedded Operating Systems} \label{embedded-oses}
+Traditionally, embedded systems were simple enough to only require a single program binary. They were usually only responsible for doing one simple task, so running multiple applications was never a priority. However, in recent years, embedded software is become increasingly networked and complex. As this trend continues, the need for multiprogramming increases. Some well-known embedded operating systems include: FreeRTOS, Zephyr, or TinyOS.
+
+\subsection{Memory Protection Unit (MPU)}
+Embedded devices lack the fully-fledged memory management unit (MMU) that desktop and server class machines enjoy. As a result, embedded devices cannot support virtual memory and are stuck with the physical address space. In lieu of an MMU, many hardware manufacturer's have chosen to include a Memory Protection Unit (MPU) instead \cite{arm-mpu}. An MPU is a stripped down version of an MMU which only provides memory protection. It is a programmable piece of hardware that allows the firmware to define \textit{regions} and assign memory access permissions to them \cite{arm-mpu}. 
+
+% \begin{figure}
+% \caption{diagram of MPU regions with a table showing the regions listed}
+% \end{figure}
+
+\section{Tock} \label{tock-bg}
+
+Tock is an embedded operating system designed to run mutually distrustful applications on microcontroller-class embedded devices \cite{tock}. It is designed with kernel process isolation and fault tolerance in mind. Tock has been adopted primarily in secure-root-of-trust applications due to its strong isolation guarantees.
+
+Tock, unlike other embedded operating systems, truly focuses on multiprogramming between multiple, isolated computation units. The Tock kernel is an entity which runs separately from each userspace application. Other embedded operating systems, such as Zephyr and FreeRTOS, are more akin to a ``library OS" which is simply compiled together with the applications to form one large binary \cite{zephyr-overview} \cite{freertos-dynamic}.
+
+\subsection{Tock Kernel}
+The Tock kernel is responsible for scheduling userspace processes, handling system calls and virtualizing underlying hardware resources. The kernel is written in Rust to take advantage of Rust's memory and type safety. 
+
+The kernel is split into a few components. The core kernel is a small trusted codebase which is responsible for scheduling and process management. The core kernel is permitted to use \texttt{unsafe} blocks of Rust code to perform low level operations the kernel must be able to perform (i.e. accessing hardware registers) \cite{tock-kernel}. Capsules are untrusted parts of the kernel which implement logic to carry out system calls. They are still written in Rust, but are not permitted to use \texttt{unsafe} blocks. See Figure \ref{fig:tock-arch} for an overview of Tock's architecture.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./assets/tock-stack.png}
+    \caption[Tock Architecture]{Tock Architecture -- \textbf{Figure From} \cite{tock-kernel}}
+    \label{fig:tock-arch}
+\end{figure}
+
+\subsection{libtock-c} \label{libtock-bg}
+\texttt{libtock-c} is one of Tock's userspace libraries. \texttt{libtock-c} targets applications written in  C/C++ and provides a convenient interface to make system calls to the Tock kernel \cite{libtock-c}. The \texttt{libtock-c} repository also allows developers to easily build and link libraries into their applications. Some of these libraries include \texttt{newlib} for a C standard library implementation, \texttt{lr1110} for LoRaWAN and Wi-Fi scanning, and \texttt{libopenthread} for interoperability with Thread networks \cite{libtock-c}. 
+
+\subsubsection{crt0}
+\texttt{libtock-c} includes a startup routine for all applications called \texttt{crt0}. \texttt{crt0} includes any code that runs before the \texttt{main} function is called \cite{crt0}. It performs any necessary setup and initialization needed for an application to run. Section \ref{tock-pic} will discuss the role \texttt{crt0} plays in \texttt{libtock-c} applications.
+
+\subsubsection{Linker Script}
+\texttt{libtock-c} also provides a linker script which is used while building applications. A linker script specifies the format and layout of an executable binary \cite{osdev-linker-script}. \texttt{libtock-c} creates a linker script which follows the syntax accepted by the GNU linker (\texttt{ld}) \cite{linker-script}. One interesting purpose of the \texttt{libtock-c} linker script is to place certain sections in flash memory while others go in SRAM. It indicates which sections belong to flash by offsetting them by the address 0x80000000. This way, any tools reading the binary can tell if an address was meant for flash or memory and perform the appropriate relocations once the location of application in flash is known.
+
+\subsection{elf2tab} \label{elf2tab-bg}
+\texttt{elf2tab} is a tool developed for the Tock ecosystem to aid in converting ELF executable files into Tock Application Bundles (TABs). A TAB is an collection of executables that target all architectures that Tock supports \cite{tock-compilation}. This means that TABs can be board-agnostic as they include every version of the binary that any board would need. A TAB is quite literally a \texttt{tar} archive of the executable file of several architectures \cite{tar}.
+
+\texttt{elf2tab} is also responsible for prepending each binary with the Tock Binary Format (TBF) header \cite{tbf}. The TBF header contains metadata needed by kernel and tools like Tockloader. The TBF header contains a set of TBF objects. Each TBF object has a base header followed by optional headers. The optional headers are structured as TLVs (type-length-values). Tock supports TLVs that indicate the entrypoint of an application's program, package name, permissions and much more. 
+
+\subsection{Tockloader} \label{tockloader-bg}
+
+Tockloader is a tool used to aid in flashing Tock applications onto actual boards. Tockloader takes the TAB files created by \texttt{elf2tab}, finds the architecture needed by the current board, and flashes the binary to the board using a tool like JLink or OpenOCD \cite{jlink, openocd}. Tockloader can also change the layout of existing applications on the board by reshuffling their positions. This way it can lay out applications as the user desires or to avoid fragmentation. 
+
+\subsection{Position-Independent-Code (PIC) on Tock} \label{tock-pic}
+
+As Tock has no virtual memory, the location of where an application's code cannot be known until the binary is flashed. This means that application code must be built in a position independent fashion as discussed in Section \ref{bg-pic}. This translates to requiring all \texttt{libtock-c} applications to be compiled with the GCC flag \texttt{-fPIC} \cite{tock-compilation, gcc-codegen}. As a result, GCC avoids absolute addressing and generates code which accesses global data via the GOT. Since \texttt{libtock-c} applications are currently statically linked with libraries, there is no need for a PLT. However, with the introduction of shared libraries the PLT will become of relevance again (Section \ref{incorrect-plt}).
+
+However, PIC isn't exactly the same for embedded devices. On platforms such as x86 Linux, one could assume that text sections are relative to data sections. This allows the GOT to be accessed in a PC-relative fashion as discussed in Section \ref{bg-got} . On embedded devices, this isn't the case. Typically, embedded devices will execute code from directly flash memory and use SRAM to store data sections. See Figure \ref{fig:non-relative} for the typical layout of the address space with non-relative text and data sections. This means text and data sections are in different parts of the physical address space with no fixed offset between them. The location of the data sections is only known when memory is allocated at runtime. To accommodate this, Tock takes advantage of a few GCC flags which avoid PC-relative GOT addressing. These flags include: \texttt{-mno-pic-data-is-text-relative, -mpic-register=r9, -msingle-pic-base} \cite{tock-compilation, arch-gcc}. The first flag (\texttt{-mno-pic-data-is-text-relative}) tells GCC to not assume a fixed distance between text and data sections. The next flag (\texttt{-mpic-register=r9}) changes every access to the GOT to be done with the help of a special register (in this case \texttt{r9}). This register will henceforth be referred to as the PIC base register. The PIC base register stores the base address of the GOT. With this, code can access entries to the GOT by reading memory relative to where the PIC base is pointing to. See Figure \ref{fig:r9} for a comparison of GOT accesses with and without the PIC base register. The last flag (\texttt{-msingle-pic-base}), tells GCC to treat \texttt{r9} as a read-only register and to assume that it will be initialized correctly to point to the GOT.
+
+\begin{figure}
+ \begin{minipage}{0.45\textwidth}
+     \includesvg[width=\textwidth]{./assets/relative.svg}
+ \end{minipage}
+ \begin{minipage}{0.45\textwidth}
+    \includesvg[width=\textwidth]{./assets/nonrelative.svg}
+ \end{minipage}
+    \caption[Non-relative Text and Data Sections]{The left showcases the typical layout of text and data sections within a process running on a desktop/server operating system with virtual memory. Note the fixed offset between the text and data sections as the OS can place them next to each other in the virtual address space. The right depicts the typical layout of text and data on embedded platforms. The green indicates flash memory while the yellow is SRAM. Text is placed in flash which is in a completely separate part of the physical address space. Data sections are placed in SRAM. Both are affected by other applications running on the board. In addition, the lack of a virtual address space makes the distance between them impossible to know at compile-time.}
+    \label{fig:non-relative}
+\end{figure}
+
+In \texttt{libtock-c}, \texttt{crt0} is responsible for setting up the PIC base register among other things. After setting up the stack, \texttt{crt0} sets the value of the PIC base register (\texttt{r9}) to the actual location of the GOT in memory \cite{libtock-c}. In addition, \texttt{crt0} copies the GOT and data sections from the binary to application memory. It also sets up the stack and zeroes out BSS memory. To know the location of GOT, data and BSS in the binary \texttt{crt0} uses the \texttt{crt0\_header}. The \texttt{crt0\_header} is the first part of any \texttt{libtock-c} ELF binary which contains addresses that indicate the location of important symbols within the binary (i.e. \texttt{.got}, \texttt{.data}). This \texttt{crt0\_header} is assembled by the linker when it processes the custom \texttt{libtock-c} linker script. The linker script defines the \texttt{crt0\_header} to be at the start of the binary which makes it trivial for \texttt{crt0} to access the header at the start of where the binary has been stored in flash memory. To know the location of where the application's memory has been allocated, the kernel passes this information via registers when it calls \texttt{crt0}.
+
+
+\begin{figure}
+\centering
+ \begin{minipage}{0.47\textwidth}
+\begin{minted}{nasm}
+foo:
+; load PC-relative offset to GOT
+ldr r3, [pc, #12]
+; calculate actual GOT address 
+add r3, pc
+; load var's offset inside GOT
+ldr r2, [pc, #12]
+; load location of var from GOT
+ldr r3, [r3, r2]
+; write 1 to var
+movs    r2, #1
+str r2, [r3, #0]
+bx  lr
+\end{minted}
+ \end{minipage}
+ \begin{minipage}{0.47\textwidth}
+    \begin{minted}{nasm}
+foo:
+; load var's offset inside GOT
+ldr r2, [pc, #12]
+; use the PIC base register (r9) to
+; access var's GOT entry
+ldr r3, [r9, r2] 
+movs    r2, #1
+; write 1 to var
+str r2, [r3, #0] 
+bx  lr
+    \end{minted}
+ \end{minipage}
+    \caption[Global Variable Access with PIC Base Register]{Global variable access in a PC-relative manner (left) and with PIC Base Register \texttt{r9} (right). Example continued from Figure \ref{fig:gotpc}}
+    \label{fig:r9}
+\end{figure}
+
+\chapter{Related Work}
+As mentioned in section \ref{tock-bg}, Tock is unique among embedded operating systems for truly multiprogramming separate executables on the same hardware. Most embedded operating systems statically link their kernel with the code of all their user applications. For this reason, other embedded operating systems typically don't support shared libraries. To my knowledge, no other embedded operating systems support shared libraries among multiple applications. There are a few posts on community forums for the Zephyr and FreeRTOS projects which discuss how they statically link libraries in favor of sharing them \cite{zephyr-shlib, freertos-shlib}.
+
+\chapter{Design} \label{design}
+
+\section{Goals}
+\begin{enumerate}
+    \item \textbf{Efficiency} Crossing between an application and a shared library function should incur as little overhead as possible. Library functions will be invoked many times during the life cycle of a program, so any additional operations should be minimized. Additionally, any overhead required at runtime to initialize a shared library to be used should be minimized as well. However, since this will only happen once on application startup it isn't as high of a priority.
+
+    \item \textbf{Security} When an application is being executed, it should only have permissions to read and execute code from shared libraries that it is designated to use. It should not be permitted to execute code from a shared library that it was never linked with. Library code may be sensitive and should not be openly available to unauthorized applications. Shared libraries can also widen the attack surface for code reuse attacks such as return-oriented-programming (ROP) and return-to-libc \cite{libsec}. These attacks can achieve arbitrary code execution by chaining together small pieces of code, or gadgets, from the application binary, libraries, etc. By restricted shared library access to only what is strictly needed, the amount of code available for these attacks can be minimized.
+    \item \textbf{Compatibility} Using shared libraries should ideally require no changes to application code. The developer should just have to build their code and libraries using the appropriate build configuration and let the infrastructure handle the rest.
+\end{enumerate}
+
+% limit code available for gadgets in ROP attacks
+
+% \section{Overview} \label{design-overview}
+% This section describes the design at a high level without going into platform specific implementation details.
+
+
+\chapter{Implementation}
+
+
+I have updated the Tock operating system and its supporting tools to support shared libraries. Applications are able to call into shared library code where the library code can perform its own global data accesses. With that being said, the implementation is limited in scope and exhibits a few limitations. This implementation targets applications and shared libraries written in the C programming language, compiled with GCC for the 32-bit ARM architecture. This chapter will examine the modifications that were needed to support shared libraries and the challenges that came with them.
+
+
+\section{Build Configuration} \label{impl-build}
+
+As an running example, take the following shared library and application showcased in Figure \ref{fig:examplecode}. It demonstrates an application calling a shared library function which in turn accesses its own global variable.
+
+\begin{figure}[!h]
+\centering
+ \begin{minipage}{0.47\textwidth}
+  \centering
+  \begin{minted}{c}
+    #include<libtest.h>
+
+    int main(void) {
+        int result = lib_func(23);
+        return result;
+    }
+  \end{minted}
+     \caption[]{Application (\textit{main.c})}
+     \label{fig:appcode}
+ \end{minipage}
+ \begin{minipage}{0.47\textwidth}
+  \centering
+  \begin{minted}{c}
+    int glob = 42;
+
+    int lib_func(int x) {
+        return x + glob;
+    }
+
+  \end{minted}
+     \caption[]{Shared Library (\textit{libtest.c})}
+     \label{fig:shlibcode}
+ \end{minipage}
+ \caption[Example Application and Shared Library Code]{Example Application (left) and Shared Library (right) C code}
+  \label{fig:examplecode}
+\end{figure}
+
+% \begin{figure}[!h]
+%  \begin{minipage}{0.5\textwidth}
+%     \begin{minted}{c}
+%     #include<libtest.h>
+%
+%     int main(void) {
+%         int result = lib_func(23);
+%         return result;
+%     }
+%     \end{minted}
+%     \label{fig:appcode}
+% \end{minipage}
+%
+%  \begin{minipage}{0.5\textwidth}
+%     \begin{minted}{c}
+%     #include<libtest.h>
+%
+%     int main(void) {
+%         int result = lib_func(23);
+%         return result;
+%     }
+%     \end{minted}
+%     \label{fig:libcode}
+% \end{minipage}
+%
+%     \caption[Example Application and Shared Library Code]{Example Application (left) and shared library (right) C code}
+%     \label{fig:examplecode}
+% \end{figure}
+
+For shared libraries to be shared by multiple applications they must be decoupled from the application binary. This means at the build stage shared libraries must be built separately from applications. 
+
+\subsection{Building a shared library} \label{impl-build}
+
+First and foremost, the \texttt{-shared} flag is passed to GCC which will ``produce a shared object which can then be linked with other objects to form an executable" \cite{gcc-link}. 
+
+As with Tock applications, shared libraries also must be position independent. There's no way to tell at build time how many shared libraries will exist or where in flash memory they will be placed by Tockloader. As such, shared libraries should be compiled with the \texttt{-fPIC} GCC flag to generate code that only uses relative addressing \cite{gcc-codegen}. 
+
+Shared libraries also need to access their own data members (i.e. global variables). As mentioned in Section \ref{tock-pic}, to support global data accesses in position independent code, additional compiler flags and mechanisms are needed \cite{tock-compilation}. These were:
+\begin{itemize}
+    \item \texttt{-mno-pic-data-is-text-relative}
+    \item \texttt{-mpic-register=r9}
+    \item \texttt{-msingle-pic-base}
+\end{itemize}
+
+Recall that \texttt{-mno-pic-data-is-text-relative} flag explicitly tells the compiler to not assume that data and text sections will be relative to each other. As such, this flag prevents global data accesses from being done using program counter (\texttt{pc}) relative addressing. Instead the compiler generates code that accesses data members by going through the Global Offset Table (GOT).
+
+\subsubsection{PIC Base Register}
+
+When examining how Tock applications access the GOT in Section \ref{tock-pic}, the notion of a special PIC base register was established with the flags \texttt{-mpic-register=r9} and \texttt{-msingle-pic-base}. The flag \texttt{-mpic-register=r9} designates \texttt{r9} as the PIC base register which means that it will store the base address of the GOT and \texttt{-msingle-pic-base} marks \texttt{r9} as read-only for the code that GCC generates. With these two flags, Tock can set \texttt{r9} once during \texttt{crt0} and the application subsequently access the global data it needs via GOT lookups.
+
+These flags work fine in isolation, but the addition of shared libraries throws a wrench into the works. If shared libraries were also compiled with the same flags, the special PIC base register (\texttt{r9}) would be conflicting between the address of the application's GOT and the shared library's GOT. Both the application and shared library need access to their separate, respective GOT to access their own data section, so simply sharing the same PIC base register will not suffice. 
+\begin{figure}[!h]
+\centering
+ \begin{minipage}{0.47\textwidth}
+  \centering
+  \begin{minted}{nasm}
+main:
+...
+push {r9} ; save app PIC base
+bl lib_func
+pop {r9} ; restore app PIC base
+...
+  \end{minted}
+     \caption[]{Application}
+ \end{minipage}
+ \begin{minipage}{0.47\textwidth}
+  \centering
+  \begin{minted}{nasm}
+lib_func:
+ldr r9, ??? ; restore lib PIC base
+...         ; do work
+str ???, r9 ; save lib PIC base
+bx lr       ; return
+  \end{minted}
+     \caption[]{Shared Library}
+ \end{minipage}
+    \caption[Saving and Restoring PIC base register]{Psuedo ARM assembly of the PIC base register \texttt{r9} being saved and restored at the function call boundary between applications and shared libraries}
+  \label{fig:saver9}
+\end{figure}
+
+One potential solution is to switch the value of the PIC base register when execution crosses the boundary between applications and shared libraries. The application calling the shared library function would be responsible for saving the value of its PIC base register (i.e. by pushing it onto the stack). Then when control flow transfers to the shared library, it will restore the value of its own PIC base. When the library call completes, the library saves its PIC Base and the application restores its own. See Figure \ref{fig:saver9} for an example of this interaction. An alternative approach could implement this functionality using a jump table, similar to the PLT. Every time the application calls a shared library function, it first jumps to a bit of code responsible for saving the PIC base before moving onto the actual library code. With regards to efficiency, this approach adds additional overhead on every shared library function call to save and restore the respective PIC base registers.
+
+While this swapping of the PIC base seems promising, it raises a few questions. Where will the shared library restore its PIC base register value from? It can't be stored in the data section since the PIC base register is needed to access the data section. It can't be in the text section since the location of the GOT is known at runtime when memory is allocated. Additionally, GCC did not seem to have compiler flags which would generate the extra code needed to save and restore the PIC base on every shared library call \cite{gcc-codegen}. 
+
+As a means to achieve a working proof of concept, the idea to juggle between multiple PIC base register values was put on hold. Instead, this implementation opts to set aside other registers to act as the PIC base for shared libraries. This way, both the application and shared library can coexist without clobbering the other's PIC base register. For example, if \texttt{r9} is reserved as the application PIC base, \texttt{r10} would be the first shared library's PIC base, \texttt{r11} for the second and so on. See Figure \ref{fig:r9r10} for an overview of data accesses with separate application/library PIC base registers. As for initializing the shared library's PIC base register, the application startup (\texttt{crt0}) routine can set the PIC base registers for each library that it is using. The shared library would be compiled with the \texttt{-msingle-pic-base} option which would make GCC avoid using its PIC base register (i.e. \texttt{r10}) in any code generation of the library. However, this wouldn't stop the application from having code that clobbers the library's PIC base register since the application is compiled separately. One way to have GCC avoid using the library's PIC base register is to use a GCC feature called \textit{Global Register Variables} \cite{gcc-hwreg}. It will reserve a register to be used exclusively for a specific global variable. As long as the application doesn't use this global variable, the register will remain untouched by GCC.
+
+\begin{figure}[h]
+    \centering
+    \includesvg[width=0.6\textwidth]{./assets/r9r10.svg}
+    \caption[Separate Application and Shared Library PIC Base Register]{Overview of an application and a shared library both accessing their own data sections via separate PIC base registers. Green represents flash memory and yellow represents SRAM.}
+    \label{fig:r9r10}
+\end{figure}
+
+The main drawback to this approach is that the number of shared libraries a single app can use is limited to how many registers are available to be reserved to be PIC bases. There's thirteen general purpose registers on an architecture like ARMv7-M \cite{arm-spec}. Several are already reserved by the calling convention to be used for passing function arguments. \texttt{r9} is already taken as the PIC base for the application which doesn't leave too many registers left for shared library PIC bases. Additionally, with fewer registers available for the compiler to use, performance may take a hit as the compiler might generate code which performs more memory accesses due to the limited pool of registers available. 
+
+In summary, these are the additional flags chosen for compiling shared libraries (Note that the register chosen for \texttt{-mpic-register} isn't required to be \texttt{r10}. It must be different from \texttt{r9} and the PIC base of any other shared library linked with a given application):
+
+    \begin{itemize}
+        \item \texttt{-fPIC }
+        \item \texttt{-shared }
+        \item \texttt{-mpic-register=r10 }
+        \item \texttt{-msingle-pic-base}
+        \item \texttt{-mno-pic-data-is-text-relative}
+    \end{itemize}
+
+% While any given app is limited to using a few libraries, this doesn't prevent every app on the system from sharing those few libraries. This means that different apps can  
+
+\subsection{Linking an application with a shared library}
+
+Building and linking a Tock application with a shared library is mostly the same as without shared libraries. First, the standard Tock application PIC flags are needed: \texttt{-fPIC -mpic-register=r9 -msingle-pic-base -mno-pic-data-is-text-relative} \cite{tock-compilation}.
+
+Next, the shared library binary must be linked into the main application's executable. Note that even though shared libraries are loaded dynamically at runtime, they still need to be referenced at link time. This is to allow the linker to verify that the libraries contain all the symbols referenced by the application \cite{shared-building}. Linking the shared library to the executable follows the same conventions expected by GCC on any other architecture or platform. A flag specifying the name of the library to be linked must be included and it follows the format of \texttt{-l<library>} or \texttt{-l <library>} where \texttt{<library>} is the name of the library file without the prefix ``lib" and file extension. If the shared library was a file named \texttt{libtest.so}, the flag \texttt{-ltest} would be passed into GCC. In addition, the \texttt{-L} or \texttt{--library-path} flag is needed so the linker can find the library on the filesystem.
+
+\subsection{Incorrect PLT Generation} \label{incorrect-plt}
+With the aforementioned build configuration, the application executable will successfully compile and link with a shared library. However, after inspection of the compiled executable, there seem to be issues with the code generation of PLT entries.
+
+Recall the workings of the PLT from Section \ref{bg-plt}, when a shared library function is called, execution first transfers to code from an entry in the PLT. Once the location of the function is resolved, the PLT code will lookup the location of the function in the GOT and jump to that address.
+
+The code in the PLT needs to access entries in the GOT to know where the function exists. This raises the question: how does PLT code access the GOT? PLT code is just like the other text sections and is executed directly from flash memory. As with text, when executing PLT code from flash, any lookups to the GOT cannot be done in a PC-relative (relative to the program counter register) fashion since the offset between text and data sections can't be known at compile time. This issue was solved previously by using the following GCC flags: \texttt{-fPIC -mpic-register=r9 -msingle-pic-base -mno-pic-data-is-text-relative} as described in Section \ref{tock-pic} \cite{tock-compilation}. The important outcome of these flags is that GCC will generate code that doesn't assume the distance between text and data is fixed and that it will access the GOT using the PIC base register (\texttt{r9}) instead of PC-relative addressing. However, the code generated by \texttt{arm-none-eabi-gcc} version 14.2.1 only generates PC-relative GOT accesses in the PLT and not the expected \texttt{r9} relative accesses. Interestingly, other accesses to the GOT (i.e. access global variables) all compile correctly and use the PIC base register to do so. It's only the GOT accesses within the PLT entries which are PC-relative.
+
+\begin{figure}[!h]
+\begin{verbatim}
+80000072 <main>:
+80000072:	2017      	movs	r0, #23
+80000074:	f001 baa4 	b.w	800015c0 <_etext+0x10>
+...
+800015b0 <.plt>:
+800015b0:	b500      	push	{lr}
+800015b2:	f8df e008 	ldr.w	lr, [pc, #8]	@ 800015bc <.plt+0xc>
+800015b6:	44fe      	add	lr, pc
+800015b8:	f85e ff08 	ldr.w	pc, [lr, #8]!
+800015bc:	7ffff2d4 	 svcvc	0x00fff2d4
+800015c0:	f24f 2cd0 	movw	ip, #62160	@ 0xf2d0
+800015c4:	f6c7 7cff 	movt	ip, #32767	@ 0x7fff
+800015c8:	44fc      	add	ip, pc
+800015ca:	f8dc f000 	ldr.w	pc, [ip]
+800015ce:	e7fc      	b.n	800015ca <.plt+0x1a>
+
+\end{verbatim}
+    \caption[\texttt{objdump} of Incorrect PLT Code Generation]{\texttt{objdump} of main function and plt section which displays the assembly generated from compiling the C code in Figure \ref{fig:appcode} \cite{objdump}}
+    \label{fig:incorrectplt}
+\end{figure}
+
+Figure \ref{fig:incorrectplt} showcases the ARM assembly generated by GCC when compiling the application C code from Figure \ref{fig:appcode}. The following walks through this code starting from the label \texttt{main}.
+
+\begin{enumerate}
+    \item The code in main is relatively simple as it loads the first argument (the constant 23) into \texttt{r0} and performs a jump to address \texttt{0x800015c0}.
+    \item Looking at address \texttt{0x800015c0} leads to code in the \texttt{.plt} section. The lines \texttt{movw	ip, \#62160} and \texttt{movt	ip, \#32767} set register \texttt{ip} to the value \texttt{0x7ffff2d0} (\texttt{movt} sets the high 16 bits of the destination while leaving the lower 16 untouched) \cite{arm-movt}.
+    \item The next line at address \texttt{0x800015c8} increments \texttt{ip} (which is \texttt{0x7ffff2d0}) by the program counter (which is \texttt{0x800015ca}). This line sets \texttt{ip} to the value of an entry in the GOT by using an offset relative to the program counter. This is where the problem with this code arises. As mentioned above, PC-relative accesses to the GOT cannot be done since the distance between text and data sections is not known at compile time (which is when this code was generated). 
+    \item Finally, line \texttt{0x800015ca} dereferences the new value of \texttt{ip} and sets the program counter. Recall in the previous line where \texttt{ip} is meant to hold the address of a GOT entry. By setting program counter, this line attempts to jump to the address held in the GOT entry that \texttt{ip} is pointing to. However, as noted in the previous line, the offset between this code (which is in flash) and the GOT section (which will exist in memory) cannot be known at this time.
+\end{enumerate}
+
+
+There exists a post to the GNU ARM Embedded Toolchain Q\&A which describes the same phenomenon \cite{wrong-plt}. A user reported using the same flags (\texttt{-msingle-pic-base} \texttt{-mpic-register=r9} \texttt{-mno-pic-data-is-text-relative}) and saw that their PLT code also exhibits PC-relative addressing to the GOT, instead of using the PIC base register \texttt{r9}. The post includes ARM assembly similar to that of the PLT entry in Figure \ref{fig:incorrectplt}. Unfortunately, this post was made in 2018 and has no replies. 
+
+One can assume this is a unintended behavior on the part of GCC. Why should only PLT got accesses be PC-relative while all other ones respect the compiler flags and use \texttt{r9} to access the GOT? With this in mind, there are a few options to have function calls to shared library functions working:
+\begin{enumerate}
+    \item Patch ARM Embedded GCC 
+    \item Rewrite PLT entries to use PIC base addressing
+    \item Bypass the PLT and jump directly to the function address held in a GOT entry
+\end{enumerate}
+
+While patching GCC is the most direct way to fix this problem, it is out of scope for this particular project. However, Section \ref{compiler-patches} discusses potential patches to GCC in more depth. 
+
+Rewriting the code in the PLT entries is a promising option. Simply replace the existing PC-relative PLT code with instructions that will look up into the GOT using the PIC base register. However, this seems simpler than it is in reality. How does one locate the instructions to rewrite? Are they just any instructions that match exactly what GCC generates in the \texttt{.plt} section? It's possible that the new instructions take up more space and need to shift around other parts of the binary. Also, the compiled code is using an instruction set called \textit{Thumb-2} which is a compressed version of the ARM architecture where each instruction can be either 16 or 32 bits wide, further complicating any binary parsing. In any case, binary writing is a whole topic in academia on its own with its own set of complexities \cite{binary-rewrite1, binary-rewrite2}.
+
+Finally, bypassing the PLT is what this implementation opted for. While the PLT is valuable for invoking the dynamic linker to resolve symbols at runtime, a dynamic linker is not needed to populate the GOT entry for the function address. As per Section \ref{impl-tockloader}, any function relocations will be handled by the flashing tool. This means, as long as the right GOT entry is populated with the function address, application code can jump directly to the address in that GOT entry when making a shared library call. 
+
+To bypass the PLT, there is a GCC code generation flag which meet the criteria. The flag is called \texttt{-fno-plt} and the GCC documentation describes it as such: ``Do not use the PLT for external function calls in position-independent code. Instead, load the callee address at call sites from the GOT and branch to it." \cite{gcc-codegen}. While this flag appears to achieve the intended goal of directly accessing function addresses via the GOT, inspection of the generated code shows no difference in code generation. With the flag enabled on \texttt{arm-none-eabi-gcc} version 14.2.1, the PLT is still generated and the code makes jumps to the PLT. Using tools like \texttt{diff} to compare file contents, shows no difference in the output binary file with or without the \texttt{-fno-plt} option \cite{diff}. Another post on the GNU ARM Embedded Q\&A, titled ``Option -fno-plt has no effect", experiences the same issue with the \texttt{-fno-plt} flag \cite{no-plt}. One of the replies state that ``Support for -fno-plt is not implemented presently". However, another reply of the same post mentions an alternative. They state that ``The use and creation of the plt can be circumvented by the use of function pointers. This will create a jump directly through GOT instead of creating a plt entry" \cite{no-plt}. 
+
+\begin{figure}[b]
+ \begin{minipage}{0.47\textwidth}
+  \centering
+  \begin{minted}{c}
+int lib_func(int x);
+  \end{minted}
+     \caption[]{Traditional Function Declaration}
+ \end{minipage}
+ \begin{minipage}{0.47\textwidth}
+  \centering
+  \begin{minted}{c}
+int (*lib_func)(int x);
+  \end{minted}
+     \caption[]{Function Pointer Declaration}
+ \end{minipage}
+    \caption[Function Pointer Declaration]{Declaring a function (left) compared to a function pointer (right) in C}
+    \label{fig:cfunctionpointer}
+\end{figure}
+
+\begin{figure}[t!]
+ \begin{minipage}{0.45\textwidth}
+  \centering
+  \begin{minted}{nasm}
+main:
+; Set argument 1 to 23
+movs    r0, #23
+; Jump to PLT entry for lib_func 
+b.w     80001730
+  \end{minted}
+\caption[]{Calling a function without using function pointer which results in a jump to a PLT entry}
+ \end{minipage}
+\hspace{0.5cm}
+ \begin{minipage}{0.45\textwidth}
+  \centering
+  \begin{minted}{nasm}
+main:
+; Load function pointer GOT offset
+ldr     r3, [pc, #8] 
+; Load GOT entry using PIC Base 
+; register:
+; GOT Base (r9) + offset (r3)
+ldr.w   r3, [r9, r3]
+; Set argument 1 to 23
+movs    r0, #23
+; Dereference function pointer
+ldr     r3, [r3, #0]
+; Jump directly to lib_func 
+bx      r3
+  \end{minted}
+     \caption[]{Calling a function with a function pointer. Accesses value of function pointer via GOT, dereferences pointer and makes the jump.}
+ \end{minipage}
+    \caption[Bypassing PLT with Function Pointers]{Generated assembly when calling a function with the PLT (left) and bypassing the PLT via a function pointer (right). This code was compiled from the application C code in figure \ref{fig:appcode}}
+    \label{fig:asmfunctionpointer}
+\end{figure}
+
+Using function pointers certainly gets around using the PLT for function calls. Instead, the code loads the function pointer just as it would any other data member, dereferences the pointer and jumps to the resulting address. Figure \ref{fig:cfunctionpointer} shows the difference in C code when declaring a function signature as a function pointer and Figure \ref{fig:asmfunctionpointer} shows the difference in generated assembly when making a function call via a function pointer. The main downside to using a function pointer is that it requires all shared library function declarations to be modified. These are typically found in the header files of libraries, so if a function pointer only header file was written for a library, it is possible that only the reference to the header could be swapped out with no changes to the rest of the actual application code. 
+
+\section{elf2tab} \label{impl-elf2tab}
+As described in Section \ref{elf2tab-bg}, \texttt{elf2tab} is a tool which converts compiled ELF binaries into TAB files. In this process, it parses the ELF binary, includes only sections which are necessary, and packages this with a TBF Header to create a TBF file. In the context of shared libraries, \texttt{elf2tab}, is useful for collecting relocation information needed to correctly map shared library function calls to the right address. \texttt{elf2tab} is able to parse the contents of the ELF file, however, it has no knowledge of where applications and shared libraries. However, Tockloader possesses this information. As a result, \texttt{elf2tab} can prepare the information about function relocations and let Tockloader perform the actual relocation since it knows the location of applications and shared libraries in the actual storage of the board. 
+
+For each function call to a shared library, \texttt{elf2tab} will produce a TOML file with relocation information to aid Tockloader. See Figure \ref{fig:reloctoml} for a sample TOML file that \texttt{elf2tab} generates. Recall from Section \ref{elf2tab-bg}, how \texttt{elf2tab} generates a TAB file which is really just a tar archive. \texttt{elf2tab} can just add the relocation TOML file to the archive alongside the other files. The TOML file contains a section for each function (i.e. \texttt{[lib\_func]}). Within each section, it specifies the field ``\texttt{app\_name}" which is the name of the application making a call to a shared library function. The field ``\texttt{app\_got\_addr}" represents the location of the GOT entry in the application binary. Specifically it is the address within the application ELF file. Once the value at this location in the binary is patched, the correct value will be carried over once the \texttt{.got} section is loaded into memory at application startup. The field ``\texttt{lib\_name}" indicates the Tock package name of the shared library which contains the function being called. Finally the ``\texttt{lib\_func\_offset}" field represents the location of the function in the shared library. Note that this isn't an offset into the shared library ELF file but the address that the linker assigned to the function symbol at link-time. The address starts with 0x8000\_\_\_\_ because the linker script places flash sections starting from 0x80000000.
+
+\begin{figure}[h!]
+\begin{minted}{toml}
+[lib_func]
+app_name = "c_hello"
+app_got_addr = 0x2850
+lib_name = "libtest"
+lib_func_offset = 0x80000029
+\end{minted}
+    \caption{\texttt{elf2tab} Relocation TOML File}
+    \label{fig:reloctoml}
+\end{figure}
+
+To gather this relocation information, \texttt{elf2tab} looked through the dynamic symbol table of the application ELF file. The dynamic symbol table is a subset of the main symbol which only contains entries that concern the dynamic linker \cite{k3-symtab}. It searched the dynamic symbol table for any global function symbols. Once a list of functions needing relocations was collected, \texttt{elf2tab} inspected the relocation sections to find a relocation entry with the same function name. With the corresponding relocation entry acquired, \texttt{elf2tab} knows where the function's GOT entry is located and which part of the binary needs relocation. Finally, \texttt{elf2tab} searches for the function symbol within the shared library ELF file to find the location in the shared library's text section. \texttt{elf2tab} is able to do this the path to any shared library dependencies are passed in via a new command line argument.
+
+Finally, \texttt{elf2tab} added a new header to the TBF. This new header describes information about shared libraries. Firstly, there is a field which describes whether of not this TBF is a shared library or not. This is encoded as either 0 or 1. Secondly, it contains the package names of any shared libraries this TBF depends on. This is represented as a sequence of null-terminated strings. See Figure \ref{fig:shlibtbf} for a block diagram.
+
+\begin{figure}
+\begin{verbatim}
+0             2             4             6             8
++-------------+-------------+---------------------------+
+| Type (11)   | Length (4+n)| is_shlib (length 4)       |
++-------------+-------------+---------------------------+
+| shlib_deps (length n)                                 |
++--------------------------------------------------...--+ 
+\end{verbatim}
+    \caption[Shared Library TBF Header]{Shared Library TBF Header shown in Type-Length-Value (TLV) format.}
+    \label{fig:shlibtbf}
+\end{figure}
+
+\section{Tockloader} \label{impl-tockloader}
+
+Since Tock currently has no mechanism to dynamically create processes at runtime, Tockloader knows exactly which applications are running on a board when applications are being flashed. This means that Tockloader can perform any relocations needed for shared library function calls since it knows where both applications and shared libraries are located on the board. Relocations done by Tockloader incur no runtime cost since they occur when applications are being flashed, not at runtime.
+
+\begin{figure}[h!]
+\begin{minted}{c}
+int (*lib_func)(int x);
+
+int main(void) {
+    int result = lib_func(23);
+    return result;
+}
+\end{minted}
+    \caption[Application Code with Shared Library Function Pointer]{Application code from Figure \ref{fig:appcode} except modified to have a declaration of \texttt{lib\_func} as a function pointer as per Section \ref{incorrect-plt}.}
+    \label{fig:appcodefp}
+
+\begin{verbatim}
+800001e4 <main>:
+800001e4:       4b02            ldr     r3, [pc, #8]    @ (800001f0)
+800001e6:       f859 3003       ldr.w   r3, [r9, r3]
+800001ea:       2017            movs    r0, #23
+800001ec:       681b            ldr     r3, [r3, #0]
+800001ee:       4718            bx      r3
+800001f0:       00000050        andeq   r0, r0, r0, asr r0
+\end{verbatim}
+    \caption[Application Code Disassembly]{Disassembly of application code from Figure \ref{fig:appcodefp}. Assume \texttt{r9} points to the start of the GOT (0x00000800 in the ELF file address space or at runtime: 0x00000800 + application memory start). Note that line at address 800001e4 is loading the constant from address 800001f0. This constant represents the offset into the GOT for the \texttt{lib\_func} function pointer.}
+    \label{fig:appcodefpasm}
+    \vspace{0.5cm}
+ \begin{minipage}{0.47\textwidth}
+     \begin{verbatim}
+00000800 <_got>:
+...
+850:   00000000
+...
+     \end{verbatim}
+ \end{minipage}
+ \begin{minipage}{0.47\textwidth}
+     \begin{verbatim}
+00000800 <_got>:
+...
+850:   00044055
+...
+     \end{verbatim}
+ \end{minipage}
+    \caption[GOT Before/After Tockloader Relocation]{This figure shows how Tockloader will modify the GOT entry which should contain the location of \texttt{lib\_func}. Left shows the GOT from an objdump of the compiled application ELF file. The binary was compiled from application code in Figure \ref{fig:appcodefp}. Note how the disassembled code uses the offset  00000050 to access the entry for \texttt{lib\_func}. The right side shows the modified binary once Tockloader has written the true address of the function \texttt{lib\_func}. Once the GOT is loaded into memory, the application can freely use it to access and call into \texttt{lib\_func}.}
+    \label{fig:tockloader-got}
+\end{figure}
+
+Now that \texttt{elf2tab} has collected the relocation information, Tockloader can execute the actual relocation. Before flashing the application, the shared library dependency must be flashed with Tockloader. Thanks to the shared library TBF header (Section \ref{impl-elf2tab}), Tockloader knows whether of not a TBF is a shared library. 
+
+Once the shared library is flashed, the application TBF can be flashed. Tockloader reads the relocation TOML file proved by \texttt{elf2tab} and modifies the application binary before flashing it. Tockloader starts by reading the applications and shared libraries already flashed on the board's flash storage. Once Tockloader finds the shared library specified as a dependency in the TOML file, it notes it's location in flash. Then, Tockloader modifies the application binary before flashing it onto the board. It knows exactly where the GOT entry is in the executable file, so it has no need to perform additional ELF parsing. It just writes the location of the shared library function to the application's corresponding GOT entry. Figure \ref{fig:tockloader-got} shows how Tockloader modifies the GOT in the application binary and Figure \ref{fig:appcodefpasm} shows how the compiled code uses that modified GOT entry.
+
+Figure \ref{fig:flow} shows the full installation process and dependency graph for flashing a shared library and dependent application onto a board.
+
+\begin{figure}
+    \centering
+    \includesvg[width=0.8\textwidth]{./assets/flow.svg}
+    \caption{Dependency Graph of Installing Shared Libraries and Applications}
+    \label{fig:flow}
+\end{figure}
+
+\section{Tock Kernel}
+
+Shared libraries were chosen to closely match the format and layout of Tock applications. They already use the same TBF format so the kernel can parse them and load them just the same as any other Tock application. When the kernel is loading shared libraries and applications from flash, the main difference is that it doesn't schedule shared libraries to be scheduled like normal applications are. To determine which entities are applications or shared libraries, it checks the shared library header of the TBF (see Section \ref{impl-elf2tab} and Figure \ref{fig:shlibtbf}). 
+
+Once the kernel loads an application which depends on a shared library, it allocates enough memory for the data sections of the shared library on top of the memory requested by the main application. The kernel also sets up the MPU accordingly with which shared library an application needs. When an application is executing, it will have an MPU region allocated for every shared library it is using. This MPU region will have read and execute permissions to allow the application to jump into the sections of flash that contain the shared library text sections. When a context switch to another application occurs, Tock will already swap out MPU regions.
+
+% \begin{figure}
+%     TODO
+%     \caption{Memory layout of multiple applications using shared libraries}
+% \end{figure}
+
+\section{libtock-c} \label{impl-libtock}
+
+Finally, the application startup (\texttt{crt0}) routine needed to be updated to support shared libraries. Recall from Section \ref{libtock-bg}, how \texttt{libtock-c} includes code which sets up the stack, PIC base register, GOT, data sections, and BSS sections. \texttt{crt0} needed to be modified to perform required setup for shared libraries. Just like for applications, \texttt{crt0} needs to copy over the shared library GOT sections from the binary in flash to memory. In addition, it sets the shared library's separate PIC base register (i.e. \texttt{r10}) as outlined in Section \ref{impl-build}. Since it just loaded where the shared library GOT is in memory, it knows exactly what to set the PIC base register to. Finally, \texttt{crt0} copies over the data sections from flash and initializes BSS sections. To know where the shared library sections exists in flash, \texttt{crt0} will make a system call to the kernel to find out the location of where shared library dependencies exist in flash memory. Then, \texttt{crt0} will read the first few bytes of the shared library in flash to read the shared library's \texttt{crt0\_header}. Recall from Section \ref{libtock-bg}, where the \texttt{crt0\_header} is a header created by the linker script which is placed at the start of an application binary. The linker script for shared libraries also creates a \texttt{crt0\_header} which contains locations of sections such as the GOT, data and BSS within the binary. Knowledge of these locations is useful for \texttt{crt0} as it can know exactly where to fetch sections from the app binary in flash. The system call to gain knowledge of the shared library's location in flash hasn't been implemented yet, but once it is, \texttt{crt0} would not need to change much. It already reads the shared library's \texttt{crt0\_header}, it would just need to learn of the shared library's location via the syscall instead of being manually informed.
+
+
+\chapter{Evaluation}
+
+As outlined in the design goals of Section \ref{design}, using shared libraries should not incur a high runtime cost. I considered three types of computation where shared libraries introduce extra overhead: function resolution at flash time, application startup, and calls to shared library functions.
+
+Traditionally, desktop and server class systems resolve references to shared library functions at runtime via a dynamic linker. The dynamic linker is invoked either when the process is loaded or the first time a function is called with lazy loading (see Section \ref{bg-plt}). As discussed in Section \ref{impl-tockloader}, Tockloader acts as a dynamic linker and performs resolution for shared library functions. Since Tockloader operates at ``flash-time", it performs these relocations before the board ever runs the application. Therefore, the overhead of Tockloader's relocations will not be quantified as part of ``runtime".
+
+With regard to application startup, the \texttt{crt0} routine was updated to perform necessary setup for shared libraries as outlined in Section \ref{impl-libtock}. As a reminder, \texttt{crt0} is the entrypoint where application code begins executing before entering the \texttt{main} function. For both applications and shared libraries, \texttt{crt0} is responsible for copying GOT and data sections from the binary to memory, zeroing the BSS section, and setting the respective PIC base registers. I measured the overhead introduced by initializing a shared library at startup using the cycle counter provided by the ARM Data Watchpoint and Trace unit (DWT) \cite{arm-dwt}. For initializing the simple shared library introduced in Figure \ref{fig:shlibcode}, initialization took 391 cycles. Table \ref{tab:startup} compares the major tasks that \texttt{crt0} performs to set up a shared library. However, most of this work isn't additional overhead, but would have been performed without shared libraries. If the same library was statically linked instead of dynamically linked as a shared library, \texttt{crt0} would perform the same setup steps (with the exception of setting the shared library PIC base register). The only difference would be that the sections would be loaded from the main application binary rather than from a separate shared library. So, the main additional overhead which didn't exist before is simply setting the shared library PIC base register which only takes a handful of cycles once at startup. 
+
+\begin{table}[h!]
+    \centerline{
+        \begin{tabular}{|c|c|}
+            \hline
+            & Cycles \\
+            \hline
+            Load GOT & 178 \\
+            Load Data & 108 \\
+            Zero BSS & 26 \\
+            Set PIC base register & 8 \\
+            \hline
+        \end{tabular}
+    }
+%     total 50574
+%     app 50234
+%     shlib 391
+%     _c_start_pic: Cycle count: 178
+% tock$ finished relocating GOT
+% _c_start_pic: Cycle count: 108
+% _c_start_pic: Cycle count: 26
+% finished setting up data and bss
+% _c_start_pic: Cycle count: 21
+% finished relocating data from 0x440f0 to 0x440f0
+% _c_start_pic: Cycle count: 8
+% finished setting r10 register to 0x2000b094
+    \caption[Shared Library Initialization Overhead]{Comparison of various initialization steps that ocurr during \texttt{crt0} to prepare a shared library to be executed.}
+    \label{tab:startup}
+\end{table}
+
+The overhead incurred by shared library function calls is more critical to minimize. During the lifetime of an application, a shared library function call can happen hundreds or thousands of times. Additionally, if a library call ends up on the hot-path of computation it is crucial that the library call is as efficient as possible. 
+
+As outlined in Section \ref{impl-build}, the current implementation sets aside another register (i.e. \texttt{r10}) to use as the shared library PIC base and also requires all shared library functions to be declared as function pointers. Figure \ref{fig:fn-eval} compares the ARM assembly instructions needed for an application to perform a traditional single argument function call as opposed to a single argument shared library function call with the current implementation. In the traditional case, it takes a total of two instructions to make the function call: a single instruction to set the first argument and another to jump to the function code. In the shared library case, a total of five instructions are needed. One instruction is needed to load the function pointer's offset within the GOT to register \texttt{r3}. Next, the GOT lookup is performed with the application's PIC base register. The function pointer address is loaded into register \texttt{r6}. Then, the function pointer is dereferenced and the function's actual address is placed in register \texttt{r3}. The remaining two instructions closely model the original case: one sets the first argument and the other jumps to the function code. In short, the current implementation of shared libraries incurs an overhead of three additional instructions which are needed to lookup the location of the function at runtime.
+
+\begin{figure}[]
+\begin{minipage}{0.45\textwidth}
+\begin{minted}{nasm}
+movs    r0, #23
+bl      800001e4 <my_func>
+\end{minted}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+\begin{minted}{nasm}
+ldr     r3, [pc, #48]
+ldr.w   r6, [r9, r3]
+ldr     r3, [r6, #0]
+movs    r0, #23
+blx     r3
+\end{minted}
+\end{minipage}
+    \caption[Overhead of Shared Library Function Call]{The left side depicts the ARM assembly needed to perform a traditional function call with a single argument. The right side shows the assembly needed to perform a function call to a shared library (which includes a GOT lookup and a function pointer dereference). Both examples are calling a function with the same function signature from Figure \ref{fig:shlibcode}}
+    \label{fig:fn-eval}
+\end{figure}
+
+\begin{table}
+    \centerline{
+    \begin{tabular}{|c | c c c c|}
+         \hline
+         & Baseline & \textbf{Function Pointer (FP)} & No FP & Save/Restore \texttt{r9} w FP \\
+         \hline
+        Instruction Count & 2 & 5 & 4 & 7 \\
+         \hline
+    \end{tabular}
+}
+    \caption[Shared Library Function Call Overhead]{Single Argument Shared Library Function Call Overhead. Baseline is a traditional direct function call without shared libraries (see left side of Figure \ref{fig:fn-eval}). \textbf{Function Pointer} is the current implementation which calls a function pointer via a GOT lookup (see right side of Figure \ref{fig:fn-eval}). No FP is an alternative scenario which looks up the function address directly from the GOT. The last case ``Save/Restore \texttt{r9} w FP" builds on top of the current \textbf{Function Pointer} approach and adds instructions to save and restore the application PIC base register. See Section \ref{impl-build} for a discussion on why this saving and restoring functionality is needed.}
+    \label{tab:fncall}
+\end{table}
+If the implementation was modified to not use function pointers, one instruction could be shaved off. Instead of dealing with function pointer, the entry in the GOT would just contain the address of the function itself. This would remove the need to dereference the function pointer before jumping. 
+
+Another variation discussed in Section \ref{impl-build}, involves saving and restoring the special PIC base register \texttt{r9} on every function call. As discussed earlier, this version would share a single PIC base register between applications and shared libraries as opposed to the current version which uses separate PIC base registers (\texttt{r9} and \texttt{r10}). With regards to runtime, this would add additional overhead to save and restore \texttt{r9} on every function call. While there's no compiler option to perform this operation on every shared library function call, the psuedo ARM assembly from Figure \ref{fig:saver9} would suggest only two additional instructions: one to save \texttt{r9} and one to restore it after the library function returns. Table \ref{tab:fncall} compares the instruction overhead of a few of these variations.
+
+
+
+
+\chapter{Discussion and Future Work}
+
+\section{Compiler Patches} \label{compiler-patches}
+
+This section discusses potential extensions to the ARM port of GCC to aid in smoothing the edges around shared libraries on Tock. To avoid conflicts with other platforms, these flags could be marked explicitly for the Tock platform.
+
+\subsection{Avoid clobbering PIC base register}
+
+As discussed in Section \ref{impl-build}, Tock applications expect the register \texttt{r9} to be reserved as a special \textit{PIC base} register which always stores the base address of an application's GOT in memory. Since shared library's have their own GOT in memory, separate from the main application GOT, they need their own way to access their GOT without using PC-relative memory instructions. The solution proposed for this implementation is to reserve another register (i.e. \texttt{r10}) as the PIC base register for a shared library. However, this isn't the ideal solution since it severely restricts the number of shared libraries that can be used at a time. There's only a handful of registers where many are already taken. Even worse, compiling shared libraries for a specific PIC base register makes the shared library code harder to share. If multiple apps are using the same shared library, each app needs to make sure that they aren't using another shared library which is compiled with the same PIC base register. If two shared libraries are compiled for the same PIC base (i.e. \texttt{r10}) then one of them would be incorrectly assuming that \texttt{r10} was pointing to their own GOT.   
+
+As an alternative explored in Section \ref{impl-build}, it would be possible to have the application and shared libraries share a single PIC base register. This would require additional code to save and restore the PIC base register on every call to a shared library function. Note that this would only occur on \textit{shared library function calls} and not calls to functions within the main application executable.  While there's currently no code generation compiler option for this, it could be added to GCC. It would introduce additional code on the caller side to save its PIC base register to the stack, make the function call, and restore the PIC base once the call returns. On the callee side, it loads its own PIC base register and stores it before the function returns. Figure \ref{fig:saver9} shows some psuedo ARM assembly of such functionality. 
+
+Saving and restoring the register is straightforward on the caller's side thanks to instructions that can pop and push the reg to the stack. However, the callee can't load and store their PIC base on the stack since their stack frame is created when the function is called and is destroyed after the function returns. Instead, the shared library's PIC base value must be stored elsewhere in memory. The actual location could be allocated by \texttt{crt0} and \texttt{crt0} could update references to the PIC base value when the shared library is loaded. Instead of updating every reference to the PIC base, the code required to store and load the PIC base could be reused as sub-routines, similar to how PLT entries work. When the shared library needs to load its PIC base register, it would call to a ``load" sub-routine which would have the relocated address to the PIC base value and a similar sub-routine would exist for storing the PIC base back in memory. With this model, relocations only need to be applied once for the store and load sub-routines. However, this introduces a problem if multiple apps try to share the same library. Each app using a library needs a separate library GOT for each app using the library. This means the PIC base will be different for the same library being used across multiple apps. Therefore, it isn't feasible for \texttt{crt0} to directly modify the shared library code to be hard-coded with the location of a GOT. One alternative approach could be to have these load and store subroutines be in an executable region of memory where a different version of the sub-routine could exist for each application using the library. With this all being said, the best design for such a compiler extension is yet to be discovered and future work could explore trade-offs across different implementations.
+
+\subsection{PLT entries use PIC base register}
+
+The current implementation avoids using the PLT altogether due to issues in PLT generation with ARM for GCC as described in Section \ref{incorrect-plt}. The code in the PLT isn't generating the correct position-independent code which uses the PIC base register. The code generated in the PLT entries uses PC-relative addressing which is incompatible with the non-relative text and data sections present for Tock applications. The compiler patch to fix this issue would be relatively straightforward, change the PLT entries to access the GOT using the PIC base register when compiled with the \texttt{-mpic-register=r9}, just like all other code already does. Figure \ref{fig:plt-fix} compares PLT code currently generated by ARM GCC to the proposed version which uses the PIC base register.
+
+\begin{figure}[h!]
+    \begin{minipage}{0.45\textwidth}
+    \begin{minted}{nasm}
+; load PC-relative offset 
+; to the GOT
+movw    ip, #62160
+movt    ip, #32767
+; calculate actual GOT addr 
+add     ip, pc
+; read GOT entry and jump
+; to function
+ldr.w   pc, [ip]
+    \end{minted}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+    \begin{minted}{nasm}
+; load offset into GOT
+ldr     r3, [pc, #48]
+; read GOT entry
+ldr.w   r3, [r9, r3]
+; jump to function
+bx      r3
+    \end{minted}
+    \end{minipage}
+    \caption[PLT Entries Using PIC Base Register]{The left shows current PLT entries which uses PC-relative offsets to access the GOT in favor of the PIC base register. A hard-coded constant is offset from the current PC is used to lookup the function location cached in the GOT. Once the function location is found, it is loaded into the PC register to start executing that function. The right depicts what the PLT should look like when compiled to use the PIC base register. First it loads the offset within the GOT for the specific function being called. While this offset is loaded using PC-relative addressing, it's totally fine since it's located nearby in the text section (fixed offset) and the offset within the GOT will not change after compile-time. Next, the GOT entry is read using PIC base relative addressing (\texttt{r9} + offset within GOT). Finally, it jumps to the actual function body.}
+    \label{fig:plt-fix}
+\end{figure}
+
+Alternatively, a compiler patch could fix the functionality of the \texttt{-fno-plt} option to correctly avoid using the PLT and load function addresses directly from the GOT.  See Section \ref{impl-build} for a detailed explanation of the flag's functionality and how GCC for ARM doesn't implement it. This compiler modification would allow function calls to jump directly to the function location stored in the GOT and avoid going through the PLT altogether.
+
+\section{RISC-V and Rust Userspace}
+
+The current model for shared libraries will not generalize to RISC-V boards and apps written in Rust due to lack of toolchain support for PIC. The RISC-V version of GCC doesn't support the \texttt{-mno-pic-data-is-text-relative} flag discussed earlier \cite{riscv-gcc, more-riscv-gcc}. LLVM, the Rust compiler's code generator, also doesn't support the same embedded position-independent code features available on GCC \cite{llvm-mail, llvm-forum, amit-forum}.
+
+Currently Tock compiles RISC-V and Rust applications for several different fixed addresses in both Flash and RAM \cite{tock-compilation}. This way, it can pick and choose which combination of fixed addresses can coexist on the board at runtime. It's possible for shared libraries to also be compiled for several fixed addresses. Once one of the fixed addresses are chosen, relocations can be applied to point to their actual location.
+
+\section{Nested Shared Libraries Calls}
+
+The current implementation doesn't allow shared libraries to make calls to other shared libraries. To support this, shared libraries could be linked with other shared libraries just like applications were in Section \ref{impl-build}. Tockloader would need to be updated to perform relocations wherever shared libraries call other shared libraries.
+
+% \section{Library Naming Conflicts}
+
+\chapter{Conclusion}
+This work presents an initial implementation that supports shared libraries for the Tock operating system. The current implementation supports function calls to shared libraries where the library can make it's own global data accesses. The Tock kernel, \texttt{elf2tab}, Tockloader, application build system, and application startup routine have been modified to provide the needed infrastructure for shared libraries to function.  While a working proof of concept exists, there are several rough edges that limit the number of shared libraries and require small modifications to source code. However, with the appropriate toolchain updates, the rough edges can be smoothed out and using shared libraries on Tock can be made to be seamless. 
+
+
+% \chaper{Design}
+% hi
+%
+% \chaper{Design}
+% hi2
+
+% \chapter{An ordinary page}
+% The purpose of this page is to illustrate an ordinary page of text in
+% a doctoral dissertation or master's thesis. All pages of the doctoral
+% dissertation or master's thesis must be kept within the margins of
+% 1.5'' on the left, 1'' on the right, 1'' on the top and 1.25'' on the
+% bottom. All text must be double spaced except as indicated below.
+%
+% It is recommended that to increase the margins as paper can shift in a
+% printer and as some photocopiers tend to increase the image being
+% copied.
+%
+% The first line of each paragraph must be indented at least one 0.5''
+% tab, as done here.
+%
+% This text is intended to be a part of the dissertation, for a doctoral
+% student, or the thesis if you are receiving a master's degree, and now
+% a quote is included here:
+% \begin{quote}
+% All quotes of more than six lines, even though this one is not, are to
+% be indented 0.5'' from the left and 0.5'' from the right. These longer
+% quotes are to be single spaced. Don't forget to adjust for proper
+% spacing after the last line of the quoted material.
+% \end{quote}
+% The rest of the paragraph would continue as so.
+
+% \chapter{Figures and Such}
+% This demonstrates how OGS wants figures and tables formatted. For
+% figures, the caption goes below the figure and ``Figure'' is in bold.
+% See Figure~\ref{fig:zen}. Tables are formatted with the caption above
+% the table. See Table~\ref{tab:bad}.
+%
+% Of course, Table~\ref{tab:bad} looks horrible. It should probably be
+% formatted like Table~\ref{tab:good} instead.
+%
+% For facing caption pages, see Table~\ref{tab:facing}. Of course,
+% facing caption pages are vaguely ridiculous and my implementation of
+% them in the class file is by far the most brittle part of the
+% implementation. It's entirely possible that something has changed and
+% these don't work at all. I implemented it merely for the challenge.
+%
+% \begin{figure}
+% \centering
+% \fbox{\parbox{.9\linewidth}{%
+% 	\noindent
+% 	{\Huge PHD ZEN}\par
+% 	\vskip.5in
+% 	\centerline{comic here}
+% 	\vskip.5in
+% }}
+% \caption[``Ph.D. Zen'']{Comic entitled ``Ph.D. Zen'' by Jorge Cham, 2005. Copyright
+% has not been obtained and so it isn't displayed.}
+% \label{fig:zen}
+% \end{figure}
+%
+% \begin{table}
+% \centering
+% \caption[Electronic Dissertation Submission Rates]{Electronic
+% Dissertation Submission Rates at UCSD, Fall 2005 and Winter 2006.
+% (First two quarters that the program was available to all Ph.D.
+% candidates not in a Joint Doctoral Program with SDSU.)}
+% \label{tab:bad}
+% \begin{tabular}{|*{5}{>{\centering\arraybackslash}m{.15\linewidth}|}}
+% \hline
+% &Ph.D.s awarded (Including Joint degrees) & Electronic submission of
+% Dissertation & Paper Submission of Dissertation & Percentage of
+% Electronic Submission\\
+% \hline
+% Fall\par 2005 & 84 & 37 & 47 & 44.05\%\\
+% \hline
+% Winter\par 2006 & 64 & 42 & 22 & 65.63\%\\
+% \hline
+% \end{tabular}
+% \end{table}
+%
+% \begin{table}
+% \centering
+% \caption[Electronic Dissertation Submission Rates]{Electronic
+% Dissertation Submission Rates at UCSD, Fall 2005 and Winter 2006.
+% (First two quarters that the program was available to all Ph.D.
+% candidates not in a Joint Doctoral Program with SDSU.)}
+% \label{tab:good}
+% \renewcommand\tabularxcolumn[1]{>{\RaggedRight\arraybackslash}p{#1}}
+% \begin{tabularx}{.9\linewidth}{lcccc}
+% \toprule
+% &\multicolumn{1}{X}{Ph.D.s awarded (Including Joint degrees)}
+% &\multicolumn{1}{X}{Electronic submission of Dissertation}
+% &\multicolumn{1}{X}{Paper Submission of Dissertation}
+% &\multicolumn{1}{X}{Percentage of Electronic Submission}\\
+% \midrule
+% Fall 2005 & 84 & 37 & 47 & 44.05\%\\
+% Winter 2006 & 64 & 42 & 22 & 65.63\%\\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+%
+% \begin{facingcaption}{table}
+% \caption[UCSD Gender Distribution]{University of
+% California, San Diego Gender Distribution for the Campus Population,
+% October~2005\\
+% (http://assp.ucsd.edu/analytical/Campus\%20Population.shtml)\\
+% \emph{(This is an example of a facing caption page, the next page is
+% the example of the table/figure/etc.\ that corresponds to this
+% caption. It is also an example of table/figure that is rotated 90
+% degrees to fit the page.)}}
+% \label{tab:facing}
+% \renewcommand\tabularxcolumn[1]{>{\RaggedLeft\arraybackslash}p{#1}}
+% \parindent=0pt
+% \setbox0=\vbox{%
+% \vsize\textwidth
+% \hsize\textheight
+% \linewidth\hsize
+% \columnwidth\hsize
+% \textwidth\hsize
+% \textheight\vsize
+% \begin{tabularx}{\linewidth}{lXXXXXX}
+% \toprule
+% & \multicolumn{2}{c}{\textbf{Women}}
+% & \multicolumn{2}{c}{\textbf{Men}}
+% & \multicolumn{2}{c}{\textbf{Total}}\\
+% \cmidrule(l){2-3}\cmidrule(l){4-5}\cmidrule(l){6-7}
+% \textbf{Population Segment}
+% & \multicolumn{1}{c}{\textbf{N}} & \multicolumn{1}{c}{\textbf{\%}}
+% & \multicolumn{1}{c}{\textbf{N}} & \multicolumn{1}{c}{\textbf{\%}}
+% & \multicolumn{1}{c}{\textbf{N}} & \multicolumn{1}{c}{\textbf{\%}}\\
+% \midrule
+% Students & 12,987 & 51\% & 12,686 & 49\% & 25,673 & 100\%\\
+% Employees & 9,943 & 56\% &  7,671 & 44\% & 17,614 & 100\%\\
+% \addlinespace
+% \hfill\textbf{Total} & \textbf{22,930} & \textbf{53\%} &
+% \textbf{20,357} & \textbf{47\%} & \textbf{43,287} & \textbf{100\%}\\
+% \bottomrule
+% \end{tabularx}
+% \singlespacing
+%
+% \emph{Notes}:
+% \begin{enumerate}
+% \item The counts shown below will differ from the official quarterly
+% Registrar's registration report because 1) data for residents in the
+% Schools of Medicine and Pharmacy and Pharmaceutical Science are
+% excluded, and 2) registered, non-matriculated, visiting students are
+% included.
+% \item Student workers are excluded from employees; however emeritus
+% faculty and others on recall status are included.
+% \end{enumerate}
+%
+% Campus Planning. Analytical Studies and Space Planning\\
+% 31 January 2006
+% }
+% \centerline{\rotatebox{90}{\box0}}
+% \end{facingcaption}
+
+% % This will give us some more text
+% \Blinddocument
+
+% % Skipping a bunch of chapters
+% \setcounter{chapter}{50}
+% \chapter{Another chapter}
+% \setcounter{figure}{73}
+% \setcounter{table}{88}
+% \begin{figure}
+% \centering
+% \fbox{\hbox to.8\linewidth{\hss Another figure\hss}}
+% \caption{Another figure caption}
+% \end{figure}
+% \begin{table}
+% \centering
+% \caption{Another table caption}
+% \begin{tabular}{ccc}
+% \toprule
+% X&Y&Z\\
+% \midrule
+% a&b&c\\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+% \begin{figure}
+% \caption{ASDF fig}
+% \end{figure}
+% \begin{table}
+% \caption{ASDF tab}
+% \end{table}
+
+\appendix
+% \Blinddocument
+
+% Stuff at the end of the dissertation goes in the back matter
+\backmatter
+\bibliographystyle{plain} % Or whatever style you want like plainnat
+\bibliography{references}
 
 \end{document}
