@@ -1,13 +1,13 @@
-# ms-thesis
+# Shared Libraries for an Embedded Operating System: Tock
 
-## Download pre-built PDF
-
-Download a copy of the latest PDF from the [GitHub Releases](https://github.com/atar13/ms-thesis/releases)
-
-## Build from source
-
-Download xelatex or your favorite LaTex compiler.
+## Build PDF
 
 ```sh
-xelatex main.tex
+just build
 ```
+
+## Source Code
+- [tock](https://github.com/atar13/tock/tree/shared-libraries)
+- [libtock-c](https://github.com/atar13/libtock-c/tree/shared-libraries)
+- [elf2tab](https://github.com/atar13/elf2tab/tree/shared-libraries)
+- [tockloader](https://github.com/atar13/tockloader/tree/shared-libraries)

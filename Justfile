@@ -4,4 +4,4 @@ help:
   @just --list
 
 build:
-    xelatex main.tex
+  latexmk -pdf -file-line-error -halt-on-error -interaction=nonstopmode -shell-escape main.tex

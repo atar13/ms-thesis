@@ -1,0 +1,181 @@
+\documentclass{article}
+% \usepackage{graphicx} % Required for inserting images
+% % \usepackage[
+% % backend=biber,
+% % style=apa,
+% % ]{biblatex}
+% % \usepackage[T1]{fontenc}
+% \usepackage{mathptmx}
+% \usepackage[legalpaper, portrait, margin=1in]{geometry}
+% \renewcommand{\baselinestretch}{2} 
+
+% \addbibresource{references.bib}
+
+\title{Sharing is Caring: Shared Libraries for an Embedded Operating System}
+\author{Anthony Tarbinian}
+\date{June 2025}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+Today, shared libraries are ubiquitous in modern operating systems. %
+When multiple processes share the same code, memory can be saved by removing any duplicate copies of the libraries they have in common. %
+This technique becomes increasingly relevant in the context of multi-tenant embedded systems. %
+These devices are already resource constrained, however, this problem is exacerbated with the presence of multiple ”apps” running on the same system. %
+This presents an opportunity to free the system to do even more with its precious resources or to push the same workloads to cheaper devices. %
+This work examines the design and implementation of adding shared libraries to a multi-tenant embedded operating system with a focus on system security and efficiency. %
+
+\section*{Introduction}
+
+\begin{itemize}
+    \item What is the problem?
+        \begin{itemize}
+            \item Wasted space
+        \end{itemize}
+    \item Why is this an important problem?
+        \begin{itemize}
+            \item Limited memory on embedded systems. (Reference Hudson paper)
+            \item Wireless app flashing and loading
+                \item TODO: LoRa diagram but with more apps with/without shared libraries
+        \end{itemize}
+    \item Why do existing solutions fall short?
+        \begin{itemize}
+            \item Could talk about other embedded OSes
+            \item A lot of other embedded OSes aren't multi-tenant, so our situation might be a little different 
+            \item Maybe worth saving for related works section
+        \end{itemize}
+    \item How do you fix the problem
+        \begin{itemize}
+            \item Make it!
+        \end{itemize}
+\end{itemize}
+
+\section*{Background}
+
+\begin{itemize}
+    \item What are shared libraries?
+    \item What is static linking? \\
+        When libraries are statically linked, the linker copies them into the program's executable file at link-time. This happens before the program ever gets run.
+    \item How do they work on other OSes? \\
+        Virtually all modern operating systems have support for sharing libraries between processes. We will examine how libraries are typically loaded on a Linux system.
+
+        First, when a program is started, such as via the \texttt{exec} system call, the dynamic linker is the first thing that gets run. On Linux, the dynamic linker inspects the binary to determine which libraries need to be loaded \cite{ld.so}. For recent versions of Linux, this usually means parsing the ELF binary format. ELF is a standardized format for executable and library files. It contains something called the "Dynamic Section" which contains references to shared libraries that need to be dynamically linked \cite{ELF pg 78}. The dynamic linker looks though these references, parses their path, and maps them into your process's address space. One the library is loaded, the dynamic linker goes ahead and populates the Global Offset Tables (GOT) and Procedure Linkage Table (PLT). TODO explain
+    \item Go more into detail on how relocation works or maybe save that for design 
+
+    \item Show code snippets before and after. Global variable access with/without GOT. Function call with/without PLT. With/without r9 flag 
+
+
+        \textbf{TODO: show graph of Linux library linking} \\
+        \textbf{TODO: diagram of ELF Headers}
+    \item Embedded OSes?
+        What are embedded OSes? \\
+        What are some of the popular ones out there and what sets them apart? \\
+    \item Multi-tenant embedded OSes?
+    \item Tock
+        talk about how tock is different than other embedded OSes
+    \item Tockloader
+    \item TBF \\
+        \textbf{TODO: diagram of TBF Headers}
+\end{itemize}
+
+\section*{Related Works}
+
+\begin{itemize}
+    \item TODO: see what kind of support other embedded OSes have for shared libraries have. how are they implemented? any drawbacks?
+    \item TODO: talk about how other embedded OSes are different and why they don't have a need for shared libraries 
+\end{itemize}
+
+\section*{Overview}
+
+\section*{Design}
+
+\begin{itemize}
+    \item security? prevent one app from messing with shared library memory which would affect another app (use MPU to make shared memory sections r/x only, no writes?)
+    \item talk about how im treating shared libraries as "apps" in flash and how that leads to more efficient packing of apps/libraries in flash due to how tockloader can fit things in. Normally linux puts it on the filesystem with env vars, but Tock doesn't have a global kernel level filesystem.
+\end{itemize}
+
+\section*{Evaluation}
+\begin{itemize}
+    \item Does it work?
+    \item Does it really work?
+        \begin{itemize}
+            \item How well? under varying paramters?
+            \begin{itemize}
+                \item tons of apps?
+                \item tons of libraries?
+            \end{itemize}
+            \item How does it compare?
+        \end{itemize}
+    \item Graphs
+        \begin{itemize}
+            \item Overhead of function call to shared library
+                \begin{itemize}
+                    \item Bar graph showing function call with shared library vs statically linked (highlight overheads with pushing/popping r9 register, PLT lookup on initial call and also needing to fetch r9 at the start of every prologue)
+                    \item Comparison graph to Linux?
+                \end{itemize}
+            \item Process loading overhead? 
+                \begin{itemize}
+                    \item Bar graph showing any additional overhead for the kernel to have to look through header and populate GOT/PLT in memory.
+                    \item Comparison graph to Linux process loading?
+                \end{itemize}
+            \item Tockloader flashing overhead? 
+            \item RAM/Flash savings without having to statically compile shared libraries
+            \item Any additoinal RAM overhead?
+        \end{itemize}
+\end{itemize}
+\section*{Discussion}
+In limitations talk about issues with symbol names and shared library filenames (what elf2tab expects)
+
+Talk about proposed compiler modifications (no-plt, caller saved r9)
+
+\section*{Conclusion}
+
+% \section*{Notes}
+% \begin{itemize}
+%     \item poking
+%         \begin{itemize}
+%             \item trying to find where the kernel decides to put app (need to leave some space for shared libs)
+%             \item seems like process\_standard::create() is responsible
+%             \item seems like linker script defines the bounds for all application memory
+%         \end{itemize}
+%
+%     \item MVP
+%     \begin{itemize}
+%         \item tockloader (build stage):  
+%         \begin{itemize}
+%             \item have two libraries share libc (newlib)
+%             \item have a hardcoded value in header to point to newlib
+%             \item literally a string or something
+%             \item this is ok? it'll be a finite number of libraries supported for Libtock-c later on
+%         \end{itemize}
+%     \item kernel (runtime):
+%     \begin{itemize}
+%             \item read headers
+%             \item if you see a shared lib, allocate a fixed block of RAM within the application region
+%     \end{itemize}
+%     \end{itemize}
+%
+%
+%     \item qs
+%         \begin{itemize}
+%             \item  what is brk and are apps not allocated any memory to start?
+%             \item  seems like processes define how much memory they need in TBF?
+%             \item  how to share region between all apps (or just apps who are using lib)
+%             \item  look at ipc.rs
+%             \item  How does IPC allocate shared mem? Is it kernel memory or in application region
+%             \item  Should I change linker script to leave some space for the shared libraries?
+%         \end{itemize}
+% \end{itemize}
+
+
+\section*{Bib}
+
+    \begin{enumerate}
+        \item ld.so: https://www.man7.org/linux/man-pages/man8/ld.so.8.html
+        \item ELF: https://refspecs.linuxfoundation.org/elf/elf.pdf
+    \end{enumerate}
+
+\end{document}

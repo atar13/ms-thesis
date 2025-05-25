@@ -6,12 +6,9 @@ mkShell {
   name = "ms-thesis";
   buildInputs = with pkgs; [
     just
-    texliveSmall
+    texliveFull
     sioyek
     rubber
+    inkscape
   ];
-
-  shellHook = ''
-    alias build="ls"
-  '';
 }
